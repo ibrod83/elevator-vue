@@ -1,0 +1,9 @@
+@import './base.css';
+
+main{
+  padding: 1rem;
+  display: flex;
+  gap:1rem;
+  padding:2rem;
+  /* justify-content: center; */
+}

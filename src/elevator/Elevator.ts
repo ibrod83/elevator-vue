@@ -51,9 +51,17 @@ export class Elevator extends EventEmitter {
                 await delay(3000); // Simulate the time taken to stop at a floor
             }
         }
-        const newState = this.upQueue.length ? PrincipalStateEnum.DESIGNATED_UP : PrincipalStateEnum.IDLE;
         this.emit(ElevatorEventsEnum.DOWN_QUEUE_FINISHED);
-        this.switchPrincipalState(newState);
+        if (this.upQueue.length) {
+           
+            this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_UP);
+            this.processUpState()
+        }else{
+            this.switchPrincipalState(PrincipalStateEnum.IDLE);
+        }
+        // const newState = this.upQueue.length ? PrincipalStateEnum.DESIGNATED_UP : PrincipalStateEnum.IDLE;
+        // this.emit(ElevatorEventsEnum.DOWN_QUEUE_FINISHED);
+        // this.switchPrincipalState(newState);
     }
 
 
@@ -75,42 +83,30 @@ export class Elevator extends EventEmitter {
             }
 
         }
-        const newState = this.downQueue.length ? PrincipalStateEnum.DESIGNATED_DOWN : PrincipalStateEnum.IDLE
-        this.emit(ElevatorEventsEnum.UP_QUEUE_FINISHED)
-        this.switchPrincipalState(newState)
+        this.emit(ElevatorEventsEnum.UP_QUEUE_FINISHED);
+        if (this.downQueue.length) {
+           
+            this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_DOWN);
+            this.processDownState()
+        }else{
+            this.switchPrincipalState(PrincipalStateEnum.IDLE) 
+        }
+        // const newState = this.downQueue.length ? PrincipalStateEnum.DESIGNATED_DOWN : PrincipalStateEnum.IDLE
+        // this.emit(ElevatorEventsEnum.UP_QUEUE_FINISHED)
+        // this.switchPrincipalState(newState)
 
     }
-
-    // async FAKE_goToFloor(){
-    //     await delay(1000)
-    // }
-
-    // async FAKE_stopAtFloor(floor:number){
-    //     this.emit(ElevatorEventsEnum.STOPPING_AT_FLOOR,floor)
-    //     await delay(2000)
-    // }
 
     // async processIdleState() {
-    //     await delay(0)
-    //     if(this.upQueue.length){
-    //         this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_UP)
+    //     while (this.principalState === PrincipalStateEnum.IDLE && this.upQueue.length === 0 && this.downQueue.length === 0) {
+    //         await delay(750)
     //     }
-
-    //     if(this.downQueue.length){
-    //         this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_DOWN)
+    //     if (this.upQueue.length) {
+    //         this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_UP);
+    //     } else if (this.downQueue.length) {
+    //         this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_DOWN);
     //     }
-
     // }
-    async processIdleState() {
-        while (this.principalState === PrincipalStateEnum.IDLE && this.upQueue.length === 0 && this.downQueue.length === 0) {
-            await delay(750)
-        }
-        if (this.upQueue.length) {
-            this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_UP);
-        } else if (this.downQueue.length) {
-            this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_DOWN);
-        }
-    }
 
 
 
@@ -182,11 +178,33 @@ export class Elevator extends EventEmitter {
     }
 
     chooseFloor(floor: number) {
-        
+
+        if (this.principalState === PrincipalStateEnum.IDLE) {
+            if (floor < this.currentFloor) {
+
+                this.downQueue.queue(floor)
+                this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_DOWN)
+
+                this.processDownState()
+            } else if (floor > this.currentFloor) {
+                this.upQueue.queue(floor)
+                this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_UP)
+
+                this.processUpState()
+            } else {
+                return
+            }
+            return;
+        }
+
+
+
         // console.log(this.currentFloor)
         // console.log(this.downQueue)
         if (floor < this.currentFloor) {
+
             this.downQueue.queue(floor)
+
         } else if (floor > this.currentFloor) {
             this.upQueue.queue(floor)
         } else {
@@ -207,26 +225,46 @@ export class Elevator extends EventEmitter {
         // this._digest()
     }
 
-    async run() {
-        while (!this.isDestroyed) {
-            switch (this.principalState) {
-                case PrincipalStateEnum.DESIGNATED_UP:
-                    console.log(`Processing DESIGNATED_UP state`)
-                    await this.processUpState()
-                    break;
-                case PrincipalStateEnum.DESIGNATED_DOWN:
-                    console.log(`Processing DESIGNATED_DOWN state`)
-                    await this.processDownState()
-                    break;
-                case PrincipalStateEnum.IDLE:
-                    console.log(`Processing IDLE state`)
-                    await this.processIdleState()
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
+    // async run() {
+    //     while (!this.isDestroyed) {
+    //         switch (this.principalState) {
+    //             case PrincipalStateEnum.DESIGNATED_UP:
+    //                 console.log(`Processing DESIGNATED_UP state`)
+    //                 await this.processUpState()
+    //                 break;
+    //             case PrincipalStateEnum.DESIGNATED_DOWN:
+    //                 console.log(`Processing DESIGNATED_DOWN state`)
+    //                 await this.processDownState()
+    //                 break;
+    //             case PrincipalStateEnum.IDLE:
+    //                 console.log(`Processing IDLE state`)
+    //                 await this.processIdleState()
+    //                 break;
+    //             default:
+    //                 break;
+    //         }
+    //     }
+    // }
+    // async run() {
+    //     if (!this.isDestroyed) {
+    //         switch (this.principalState) {
+    //             case PrincipalStateEnum.DESIGNATED_UP:
+    //                 console.log(`Processing DESIGNATED_UP state`)
+    //                 await this.processUpState()
+    //                 break;
+    //             case PrincipalStateEnum.DESIGNATED_DOWN:
+    //                 console.log(`Processing DESIGNATED_DOWN state`)
+    //                 await this.processDownState()
+    //                 break;
+    //             case PrincipalStateEnum.IDLE:
+    //                 console.log(`Processing IDLE state`)
+    //                 await this.processIdleState()
+    //                 break;
+    //             default:
+    //                 break;
+    //         }
+    //     }
+    // }
 
 
 

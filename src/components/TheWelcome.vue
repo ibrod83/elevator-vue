@@ -85,7 +85,7 @@ onMounted(() => {
   // elevator.value.value = new Elevator([1, 10]);
   registerEvents()
 
-  elevator.value.run()
+  // elevator.value.run()
   // elevator.value.chooseFloor(1)
   // elevator.value.chooseFloor(3)
   // elevator.value.chooseFloor(7)

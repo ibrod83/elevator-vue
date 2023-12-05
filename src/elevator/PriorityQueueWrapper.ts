@@ -1,12 +1,14 @@
 import PriorityQueue from "js-priority-queue"
+import { EventEmitter } from "./EventEmitter"
 
-export class PriorityQueueWrapper<T>{
+export class PriorityQueueWrapper<T> extends EventEmitter{
 
     private shouldPreventDuplicates!:boolean
     private priorityQueue!:PriorityQueue<T>
     private currentItems:T[] = []
 
     constructor(shouldPreventDuplicates:boolean,comparator?:((a: T, b: T) => number)){
+        super();
         this.shouldPreventDuplicates = shouldPreventDuplicates
         this.priorityQueue =  new PriorityQueue({comparator})
     }
@@ -21,6 +23,9 @@ export class PriorityQueueWrapper<T>{
             this.priorityQueue.queue(item)
             this.currentItems.push(item)
             console.log(this.queue.length)
+            if(this.length === 1){
+             this.emit('FIRST_ITEM_ADDED')  
+            }
         }
         
         

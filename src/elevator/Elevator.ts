@@ -1,7 +1,8 @@
-import PriorityQueue from "js-priority-queue"
 import { EventEmitter } from "./EventEmitter"
 import { ElevatorEventsEnum, TechnicalStateEnum, PrincipalStateEnum, } from "./types"
 import { delay, type Deferred, createDeferred } from "./utils"
+import { PriorityQueueWrapper } from "./PriorityQueueWrapper"
+import PriorityQueue from "js-priority-queue"
 
 
 
@@ -9,8 +10,10 @@ export class Elevator extends EventEmitter {
     private principalState!: PrincipalStateEnum
     private technicalState!: TechnicalStateEnum
     private chosenFloorsFromElevator: Set<number> = new Set()
-    downQueue = new PriorityQueue({ comparator: function (a: number, b: number) { return b - a; } });
-    upQueue = new PriorityQueue({ comparator: function (a: number, b: number) { return a - b; } });
+    downQueue = new PriorityQueueWrapper(true, function (a: number, b: number) { return b - a; });
+    upQueue = new PriorityQueueWrapper(true, function (a: number, b: number) { return a - b; });
+    // downQueue = new PriorityQueue( {comparator:function (a: number, b: number) { return b - a; }});
+    // upQueue = new PriorityQueue( {comparator:function (a: number, b: number) { return a-b; }});
     private floorRange: number[] = []
     private currentFloor: number = 0
     private closeDoorCancelationPromise!: Deferred<any>
@@ -179,7 +182,9 @@ export class Elevator extends EventEmitter {
     }
 
     chooseFloor(floor: number) {
+        
         // console.log(this.currentFloor)
+        // console.log(this.downQueue)
         if (floor < this.currentFloor) {
             this.downQueue.queue(floor)
         } else if (floor > this.currentFloor) {

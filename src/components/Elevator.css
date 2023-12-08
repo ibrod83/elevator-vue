@@ -1,9 +1,10 @@
-.yoyo{
-    color:red;
+.yoyo {
+  color: red;
 }
 
 .building {
-  position: relative; /* Needed to absolutely position the triangle roof relative to the building */
+  position: relative;
+  /* Needed to absolutely position the triangle roof relative to the building */
 
   background-color: #f0f0f0;
   border: 2px solid #bcbcbc;
@@ -30,13 +31,32 @@
 .building__floor {
   display: flex;
   /* margin: 0.25rem 0; */
-  justify-content: center;
+  justify-content: space-evenly;
   align-items: center;
   height: 20px;
   width: 100%;
   background-color: #e0e0e0;
   border: 1px solid #bcbcbc;
   position: relative;
+}
+
+.building__floorButton {
+  display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    height: 20px;
+    width: 20px;
+    border-radius: 100%;
+    /* background-color: lightgrey; */
+
+  border: 0px;
+  background-color: transparent;
+
+}
+
+.building__floorButton--selected{
+  background-color: red;
 }
 
 .building__floor--current {
@@ -60,21 +80,25 @@
 }
 
 
-  .elevator_floor_buttons {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-gap: 2rem;
-    background-color: slategrey;
-    padding: 1rem;
+.elevator__floorButtons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 2rem;
+  background-color: slategrey;
+  padding: 1rem;
 }
 
-  .elevator_floor_button {
-    display: flex;
-    text-align: center;
-    justify-content: center;
-    align-items: center;
-    height: 50px;
-    width: 50px;
-    border-radius: 100%;
-    background-color: lightgrey;
+.elevator__floorButton {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  width: 50px;
+  border-radius: 100%;
+  background-color: lightgrey;
+}
+
+.elevator__floorButton--selected {
+  background-color: yellow;
 }

@@ -1,0 +1,77 @@
+import { ElevatorEventsEnum } from "..";
+import { Elevator } from "../Elevator";
+
+
+export abstract class State {
+    protected elevator: Elevator;
+
+    constructor(elevator: Elevator) {
+        this.elevator = elevator;
+    }
+
+    public abstract orderUp(floor: number): void;
+    public abstract orderDown(floor: number): void;
+    // abstract closeDoor(): void;
+    // abstract openDoor(): void;
+    public abstract run(): void;
+
+    protected handleAddToQueue(direction: 'DOWN' | 'UP', floor: number) {
+        const queue = direction === 'DOWN' ? this.elevator.downQueue : this.elevator.upQueue
+        // if(queue.doesItemExist(floor)){
+        //     return;
+        // }
+        queue.queue(floor)
+    }
+
+    protected handleChooseFloor(direction: 'DOWN' | 'UP', floor: number) {
+
+        if (this.elevator.selectedFloors.includes(floor)) {
+            return
+        }
+
+        this.handleAddToQueue(direction, floor)
+
+        this.elevator.selectedFloors.push(floor)
+
+        this.elevator.emitEvent(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, this.elevator.selectedFloors)
+
+    }
+
+    chooseFloor(floor: number) {
+        if (floor < this.elevator.currentFloor) {
+
+            this.handleChooseFloor('DOWN',floor)
+        } else if (floor > this.elevator.currentFloor) {
+            this.handleChooseFloor('UP',floor)//
+        } else {
+            return
+        }
+    }
+
+    handleStoppedAtFloor(direction: 'DOWN' | 'UP', floor: number) {
+
+        const filterFunc = (f: number) => f !== floor
+
+        const queue = direction === 'DOWN' ? this.elevator.downQueue : this.elevator.upQueue
+
+        queue.dequeue()
+
+        this.elevator.selectedFloors = this.elevator.selectedFloors.filter(filterFunc)
+
+        this.elevator.floorsOrderedDown = this.elevator.floorsOrderedDown.filter(filterFunc)
+        this.elevator.floorsOrderedUp = this.elevator.floorsOrderedUp.filter(filterFunc)
+
+        this.elevator.emitEvent(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, this.elevator.selectedFloors)
+        this.elevator.emitEvent(ElevatorEventsEnum.CURRENT_FLOOR, this.elevator.currentFloor)
+        this.elevator.emitEvent(ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, this.elevator.floorsOrderedDown)
+        this.elevator.emitEvent(ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, this.elevator.floorsOrderedUp)
+        this.elevator.emitEvent(ElevatorEventsEnum.STOPPING_AT_FLOOR, this.elevator.currentFloor)
+
+    }
+
+    
+
+   
+
+
+}

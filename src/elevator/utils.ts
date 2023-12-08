@@ -27,46 +27,6 @@ export function createDeferred<T>(): Deferred<T> {
 }
 
 
-export enum DigestResult{
-  UP='UP',
-  DOWN='DOWN',
-  STOP='STOP'
-}
-
-export function digest(floorRange: number[],
-  currentFloor: number,
-  floorsAwaitingUp: number[],
-  floorsAwaitingDown: number[],
-  chosenFloorsFromElevator: number[],
-  principalState: PrincipalStateEnum,
-  technicalState:TechnicalStateEnum
-) {
-  switch (principalState) {
-    case PrincipalStateEnum.IDLE:
-      //if there is a higher chosenFloor, go up
-      //if there is a higher floor, that ordered either up or down, go up
-      //otherwise stop
-      break;
-    case PrincipalStateEnum.DESIGNATED_UP:
-        //TechnicalState moving:
-           //if currentFloor is in chosenFloorsFromElevator, stop
-           // if current Floor is included in floorsAwaitingUp, stop
-           //if floorsAwaitingUp contains a floor higher than the current one, go up
-           //in case floorsAwaitingUp is empty
-              //if floorsAwaitingDown has a higher floor than the current one, go up
-              //if floorsAwaitingDown is empty, stop
-
-     
-
-      break;
-
-    default:
-      break;
-  }
-}
-
-
-
 export function doesArrayIncludeLargerNumber(number: number, arrayOfNumbers: number[]) {
   return arrayOfNumbers.some(n => n > number)
 }
@@ -74,4 +34,14 @@ export function doesArrayIncludeLargerNumber(number: number, arrayOfNumbers: num
 export function doesArrayIncludeSmallerNumber(number: number, arrayOfNumbers: number[]) {
   return arrayOfNumbers.some(n => n < number)
 }
+
+export function getRandomWholeNumber(min:number, max:number) {
+  // Ensure that the min and max are whole numbers
+  min = Math.ceil(min);
+  max = Math.floor(max);
+
+  // Generate a random number in the range [min, max]
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 

@@ -26,13 +26,29 @@ export enum ElevatorEventsEnum {
     CURRENT_FLOOR = 'CURRENT_FLOOR',
     TECHNICAL_STATE_CHANGE = 'TECHNICAL_STATE_CHANGE',
     PRINCIPAL_STATE_CHANGE = 'PRINCIPAL_STATE_CHANGE',
-    FLOORS_AWAITING_UP_ADDED='FLOORS_AWAITING_UP_ADDED',
-    FLOORS_AWAITING_DOWN_ADDED='FLOORS_AWAITING_DOWN_ADDED',
     CHOSEN_FLOORS_FROM_ELEVATOR_ADDED='CHOSEN_FLOORS_FROM_ELEVATOR_ADDED',
     UP_QUEUE_FINISHED='UP_QUEUE_FINISHED',
     DOWN_QUEUE_FINISHED='DOWN_QUEUE_FINISHED',
-    STOPPING_AT_FLOOR = 'STOPPING_AT_FLOOR'
+    STOPPING_AT_FLOOR = 'STOPPING_AT_FLOOR',
+    SELECTED_FLOORS_CHANGED = 'SELECTED_FLOORS_CHANGED',
+    FLOORS_ORDERED_UP_CHANGED = 'FLOORS_ORDERED_UP_CHANGED',
+    FLOORS_ORDERED_DOWN_CHANGED = 'FLOORS_ORDERED_DOWN_CHANGED',
+    ERROR_FLOOR_OUT_OF_RANGE='ERROR_FLOOR_OUT_OF_RANGE',
+    // TRACKING_STATE_CHANGED= 'TRACKING_STATE_CHANGED'
 
+}
+
+export interface ElevatorConfig{
+    floorRange:Array<number>
+    travelDelay:number
+    stopDelay:number
+}
+
+export interface ElevatorTrackingState{
+    selectedFloors: number[] 
+    floorsOrderedUp: number[]
+    floorsOrderedDown: number[] 
+    currentFloor: number 
 }
 
 // // Interface for the principal state of the elevator

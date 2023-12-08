@@ -1,29 +1,42 @@
 import { EventEmitter } from "./EventEmitter"
-import { ElevatorEventsEnum, TechnicalStateEnum, PrincipalStateEnum, } from "./types"
+import { ElevatorEventsEnum, TechnicalStateEnum, PrincipalStateEnum, type ElevatorConfig, type ElevatorTrackingState, } from "./types"
 import { delay, type Deferred, createDeferred } from "./utils"
 import { PriorityQueueWrapper } from "./PriorityQueueWrapper"
 import PriorityQueue from "js-priority-queue"
+import type { State } from "./states/State"
+import { DesignatedUpState } from "./states/DesignatedUpState"
+import { DesignatedDownState } from "./states/DesignatedDownState"
+import { IdleState } from "./states/IdleState"
 
 
 
 export class Elevator extends EventEmitter {
-    private principalState!: PrincipalStateEnum
-    private technicalState!: TechnicalStateEnum
-    private chosenFloorsFromElevator: Set<number> = new Set()
+    private principalState: State;
+
+    technicalState!: TechnicalStateEnum
     downQueue = new PriorityQueueWrapper(true, function (a: number, b: number) { return b - a; });
     upQueue = new PriorityQueueWrapper(true, function (a: number, b: number) { return a - b; });
-    // downQueue = new PriorityQueue( {comparator:function (a: number, b: number) { return b - a; }});
-    // upQueue = new PriorityQueue( {comparator:function (a: number, b: number) { return a-b; }});
-    private floorRange: number[] = []
-    private currentFloor: number = 0
-    private closeDoorCancelationPromise!: Deferred<any>
-    private movementInterval!: string
-    private isDestroyed: boolean = false
-    // private waitForIdleStateChangeTimeout:string
 
-    constructor(floorRange: number[]) {
+    floorRange: number[] = []
+    stopDelay: number
+    travelDelay: number
+    closeDoorCancelationPromise!: Deferred<any>
+    movementInterval!: string
+    isDestroyed: boolean = false
+
+    selectedFloors:Array<number>= []
+    floorsOrderedUp:Array<number>= []
+    floorsOrderedDown:Array<number>= []
+    currentFloor =0
+
+
+
+    constructor(config: ElevatorConfig) {
         super()
-        this.principalState = PrincipalStateEnum.IDLE
+        const { floorRange, stopDelay, travelDelay } = config
+        this.stopDelay = stopDelay
+        this.travelDelay = travelDelay
+        this.principalState = new IdleState(this)
         this.technicalState = TechnicalStateEnum.DOOR_CLOSED
         this.floorRange = floorRange
 
@@ -34,237 +47,113 @@ export class Elevator extends EventEmitter {
         this.cleanup()
     }
 
+ 
 
-
-    async processDownState() {
-        while (this.downQueue.length) {
-            // await delay(2000) // This line is commented out as in processUpState
-            const nextFloor = this.currentFloor - 1;
-            const nextFloorToStop = this.downQueue.peek();
-            await delay(500);
-            this.emit(ElevatorEventsEnum.CURRENT_FLOOR, nextFloor);
-
-            this.currentFloor = nextFloor;
-            if (nextFloor === nextFloorToStop) {
-                this.downQueue.dequeue();
-                this.emit(ElevatorEventsEnum.STOPPING_AT_FLOOR, nextFloorToStop)
-                await delay(3000); // Simulate the time taken to stop at a floor
-            }
+    switchPrincipalState(state: PrincipalStateEnum) {
+        // if (state !== this.principalState) {
+        this.emit(ElevatorEventsEnum.PRINCIPAL_STATE_CHANGE, state)
+        let newState: State;
+        if (state === PrincipalStateEnum.DESIGNATED_UP) {
+            newState = new DesignatedUpState(this)
+        } else if (state === PrincipalStateEnum.DESIGNATED_DOWN) {
+            newState = new DesignatedDownState(this)
+        } else {
+            newState = new IdleState(this)
         }
-        this.emit(ElevatorEventsEnum.DOWN_QUEUE_FINISHED);
-        if (this.upQueue.length) {
-           
-            this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_UP);
-            this.processUpState()
-        }else{
-            this.switchPrincipalState(PrincipalStateEnum.IDLE);
-        }
-        // const newState = this.upQueue.length ? PrincipalStateEnum.DESIGNATED_UP : PrincipalStateEnum.IDLE;
-        // this.emit(ElevatorEventsEnum.DOWN_QUEUE_FINISHED);
-        // this.switchPrincipalState(newState);
-    }
-
-
-    async processUpState() {
-        while (this.upQueue.length) {
-            // await delay(2000)
-            const nextFloor = this.currentFloor + 1
-            const nextFloorToStop = this.upQueue.peek()
-            await delay(500);
-            this.emit(ElevatorEventsEnum.CURRENT_FLOOR, nextFloor)
-
-            this.currentFloor = nextFloor
-            if (nextFloor === nextFloorToStop) {
-                this.emit(ElevatorEventsEnum.STOPPING_AT_FLOOR, nextFloorToStop)
-
-                this.upQueue.dequeue()
-                await delay(1500)
-
-            }
-
-        }
-        this.emit(ElevatorEventsEnum.UP_QUEUE_FINISHED);
-        if (this.downQueue.length) {
-           
-            this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_DOWN);
-            this.processDownState()
-        }else{
-            this.switchPrincipalState(PrincipalStateEnum.IDLE) 
-        }
-        // const newState = this.downQueue.length ? PrincipalStateEnum.DESIGNATED_DOWN : PrincipalStateEnum.IDLE
-        // this.emit(ElevatorEventsEnum.UP_QUEUE_FINISHED)
-        // this.switchPrincipalState(newState)
+        this.principalState = newState;
+        this.principalState.run()
+        // }
 
     }
 
-    // async processIdleState() {
-    //     while (this.principalState === PrincipalStateEnum.IDLE && this.upQueue.length === 0 && this.downQueue.length === 0) {
-    //         await delay(750)
+    // private switchTechnicalState(state: TechnicalStateEnum) {
+    //     if (state !== this.technicalState) {
+    //         this.emit(ElevatorEventsEnum.TECHNICAL_STATE_CHANGE, state)
+    //         this.technicalState = state
     //     }
-    //     if (this.upQueue.length) {
-    //         this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_UP);
-    //     } else if (this.downQueue.length) {
-    //         this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_DOWN);
-    //     }
+
     // }
 
 
+    // //imperative actions used by the class
+    // private async _openDoor() {
+    //     if (this.technicalState === TechnicalStateEnum.DOOR_CLOSING) {
+    //         this.closeDoorCancelationPromise.resolve('CANCEL')
+    //     }
 
+    //     this.emit(ElevatorEventsEnum.DOOR_OPENING)
+    //     this.switchTechnicalState(TechnicalStateEnum.DOOR_OPENING)
+    //     // console.log('Door is opening')
+    //     await delay(3000)
+    //     // console.log('Door opened')        
+    //     this.switchTechnicalState(TechnicalStateEnum.DOOR_OPEN)
+    //     this.emit(ElevatorEventsEnum.DOOR_OPENED)
+    // }
 
+    // private async _closeDoor() {
+    //     this.emit(ElevatorEventsEnum.DOOR_CLOSING)
+    //     // console.log('Door is closing')
 
-    private switchPrincipalState(state: PrincipalStateEnum) {
-        if (state !== this.principalState) {
-            this.emit(ElevatorEventsEnum.PRINCIPAL_STATE_CHANGE, state)
-            this.principalState = state
-        }
+    //     this.closeDoorCancelationPromise = createDeferred()
+    //     const mockDoorClosePromise = delay(3000)
+    //     this.switchTechnicalState(TechnicalStateEnum.DOOR_CLOSING)
+    //     const raceResult = await Promise.race([mockDoorClosePromise, this.closeDoorCancelationPromise.promise])
+    //     if (raceResult === 'CANCEL') {
+    //         // console.log('Door closing canceled')
+    //         this.emit(ElevatorEventsEnum.DOOR_CLOSING_CANCELED)
+    //     } else {
+    //         // console.log('Door closed')
+    //         this.emit(ElevatorEventsEnum.DOOR_CLOSED)
+    //         this.switchTechnicalState(TechnicalStateEnum.DOOR_CLOSED)
+    //         // this._digest()
+    //     }
+    // }
 
-    }
+    // openDoor() {
+    //     const relevantStates = [TechnicalStateEnum.DOOR_CLOSED, TechnicalStateEnum.DOOR_CLOSING]
+    //     if (relevantStates.includes(this.technicalState)) {
+    //         this._openDoor()
+    //     }
+    // }
 
-    private switchTechnicalState(state: TechnicalStateEnum) {
-        if (state !== this.technicalState) {
-            this.emit(ElevatorEventsEnum.TECHNICAL_STATE_CHANGE, state)
-            this.technicalState = state
-        }
+    // closeDoor() {
+    //     const relevantStates = [TechnicalStateEnum.DOOR_OPEN]
+    //     if (relevantStates.includes(this.technicalState)) {
+    //         this._closeDoor()
+    //     }
+    // }
 
-    }
+    
 
-
-    //imperative actions used by the class
-    private async _openDoor() {
-        if (this.technicalState === TechnicalStateEnum.DOOR_CLOSING) {
-            this.closeDoorCancelationPromise.resolve('CANCEL')
-        }
-
-        this.emit(ElevatorEventsEnum.DOOR_OPENING)
-        this.switchTechnicalState(TechnicalStateEnum.DOOR_OPENING)
-        // console.log('Door is opening')
-        await delay(3000)
-        // console.log('Door opened')        
-        this.switchTechnicalState(TechnicalStateEnum.DOOR_OPEN)
-        this.emit(ElevatorEventsEnum.DOOR_OPENED)
-    }
-
-    private async _closeDoor() {
-        this.emit(ElevatorEventsEnum.DOOR_CLOSING)
-        // console.log('Door is closing')
-
-        this.closeDoorCancelationPromise = createDeferred()
-        const mockDoorClosePromise = delay(3000)
-        this.switchTechnicalState(TechnicalStateEnum.DOOR_CLOSING)
-        const raceResult = await Promise.race([mockDoorClosePromise, this.closeDoorCancelationPromise.promise])
-        if (raceResult === 'CANCEL') {
-            // console.log('Door closing canceled')
-            this.emit(ElevatorEventsEnum.DOOR_CLOSING_CANCELED)
-        } else {
-            // console.log('Door closed')
-            this.emit(ElevatorEventsEnum.DOOR_CLOSED)
-            this.switchTechnicalState(TechnicalStateEnum.DOOR_CLOSED)
-            // this._digest()
-        }
-    }
-
-    openDoor() {
-        const relevantStates = [TechnicalStateEnum.DOOR_CLOSED, TechnicalStateEnum.DOOR_CLOSING]
-        if (relevantStates.includes(this.technicalState)) {
-            this._openDoor()
-        }
-    }
-
-    closeDoor() {
-        const relevantStates = [TechnicalStateEnum.DOOR_OPEN]
-        if (relevantStates.includes(this.technicalState)) {
-            this._closeDoor()
-        }
-    }
 
     chooseFloor(floor: number) {
-
-        if (this.principalState === PrincipalStateEnum.IDLE) {
-            if (floor < this.currentFloor) {
-
-                this.downQueue.queue(floor)
-                this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_DOWN)
-
-                this.processDownState()
-            } else if (floor > this.currentFloor) {
-                this.upQueue.queue(floor)
-                this.switchPrincipalState(PrincipalStateEnum.DESIGNATED_UP)
-
-                this.processUpState()
-            } else {
-                return
-            }
-            return;
-        }
-
-
-
-        // console.log(this.currentFloor)
-        // console.log(this.downQueue)
-        if (floor < this.currentFloor) {
-
-            this.downQueue.queue(floor)
-
-        } else if (floor > this.currentFloor) {
-            this.upQueue.queue(floor)
-        } else {
-            return
-        }
-        // this.chosenFloorsFromElevator.add(floor)
+        // if (!this.selectedFloors.includes(floor)) {
+        //     this.selectedFloors.push(floor)
+        //     this.emit('SELECTED_FLOORS_CHANGED', this.selectedFloors)
+        // }
+        this.principalState.chooseFloor(floor);
     }
 
-    orderUp(originFloor: number) {
-        this.upQueue.queue(originFloor)
-        // this.emit(ElevatorEventsEnum.FLOORS_AWAITING_UP_ADDED, { originFloor })
-        // this._digest()
+    orderUp(floor: number) {
+
+        this.principalState.orderUp(floor);
     }
 
-    orderDown(originFloor: number) {
-        this.downQueue.queue(originFloor)
-        // this.emit(ElevatorEventsEnum.FLOORS_AWAITING_DOWN_ADDED, { originFloor })
-        // this._digest()
+    orderDown(floor: number) {
+        this.principalState.orderDown(floor);
     }
 
-    // async run() {
-    //     while (!this.isDestroyed) {
-    //         switch (this.principalState) {
-    //             case PrincipalStateEnum.DESIGNATED_UP:
-    //                 console.log(`Processing DESIGNATED_UP state`)
-    //                 await this.processUpState()
-    //                 break;
-    //             case PrincipalStateEnum.DESIGNATED_DOWN:
-    //                 console.log(`Processing DESIGNATED_DOWN state`)
-    //                 await this.processDownState()
-    //                 break;
-    //             case PrincipalStateEnum.IDLE:
-    //                 console.log(`Processing IDLE state`)
-    //                 await this.processIdleState()
-    //                 break;
-    //             default:
-    //                 break;
-    //         }
-    //     }
+    // openDoor() {
+    //     this.principalState.openDoor();
     // }
-    // async run() {
-    //     if (!this.isDestroyed) {
-    //         switch (this.principalState) {
-    //             case PrincipalStateEnum.DESIGNATED_UP:
-    //                 console.log(`Processing DESIGNATED_UP state`)
-    //                 await this.processUpState()
-    //                 break;
-    //             case PrincipalStateEnum.DESIGNATED_DOWN:
-    //                 console.log(`Processing DESIGNATED_DOWN state`)
-    //                 await this.processDownState()
-    //                 break;
-    //             case PrincipalStateEnum.IDLE:
-    //                 console.log(`Processing IDLE state`)
-    //                 await this.processIdleState()
-    //                 break;
-    //             default:
-    //                 break;
-    //         }
-    //     }
+
+    // closeDoor() {
+    //     this.principalState.closeDoor();
     // }
+
+    emitEvent(event: string, data?: any) {
+        this.emit(event, data)
+    }
 
 
 

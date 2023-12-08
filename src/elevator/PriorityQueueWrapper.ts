@@ -1,14 +1,13 @@
 import PriorityQueue from "js-priority-queue"
 import { EventEmitter } from "./EventEmitter"
 
-export class PriorityQueueWrapper<T> extends EventEmitter{
+export class PriorityQueueWrapper<T>{
 
     private shouldPreventDuplicates!:boolean
     private priorityQueue!:PriorityQueue<T>
     private currentItems:T[] = []
 
     constructor(shouldPreventDuplicates:boolean,comparator?:((a: T, b: T) => number)){
-        super();
         this.shouldPreventDuplicates = shouldPreventDuplicates
         this.priorityQueue =  new PriorityQueue({comparator})
     }
@@ -22,18 +21,17 @@ export class PriorityQueueWrapper<T> extends EventEmitter{
         }else{
             this.priorityQueue.queue(item)
             this.currentItems.push(item)
-            console.log(this.queue.length)
-            if(this.length === 1){
-             this.emit('FIRST_ITEM_ADDED')  
-            }
+            console.log('ENQUEUE','item: ',item, 'length: ', this.queue.length)
+            
         }
         
         
     }
     dequeue():T{        
         const currentItem =  this.priorityQueue.dequeue()
-        console.log(this.queue.length)
-        this.currentItems = this.currentItems.filter(i=>i===currentItem)
+       
+        this.currentItems = this.currentItems.filter(i=>i!==currentItem)
+        console.log('DEQUEUE','current: ',currentItem, 'length: ', this.queue.length)
         return currentItem
     }
     peek():T{
@@ -42,5 +40,9 @@ export class PriorityQueueWrapper<T> extends EventEmitter{
 
     clear():void{
         this.priorityQueue.clear()
+    }
+
+    doesItemExist(item:T){
+        return this.currentItems.includes(item)
     }
 }

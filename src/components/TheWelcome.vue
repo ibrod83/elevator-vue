@@ -4,6 +4,8 @@ import { Elevator, ElevatorEventsEnum, TechnicalStateEnum } from '@/elevator';
 
 import { onMounted, onUnmounted, onUpdated, computed } from 'vue'
 
+import { getRandomWholeNumber } from '../elevator/utils'
+
 import { ref } from 'vue'
 
 function getRandomHexColor() {
@@ -21,9 +23,11 @@ const floorNumbers = computed(() => {
 
 
 
-const elevator = ref(new Elevator(floorRange.value));
+const elevator = ref(new Elevator({ floorRange: [0, 9], travelDelay: 300, stopDelay: 600 }));
 
-
+const selectedFloors = ref<Array<number>>([])
+const floorsOrderedDown = ref<Array<number>>([])
+const floorsOrderedUp = ref<Array<number>>([])
 const color = ref(getRandomHexColor());
 
 const currentFloor = ref(0)
@@ -57,21 +61,36 @@ const registerEvents = () => {//
   elevator.value.on(ElevatorEventsEnum.STOPPING_AT_FLOOR, (data) => {
     console.log(`Event ${ElevatorEventsEnum.STOPPING_AT_FLOOR} emitted`, data);
     stoppingAtFloor.value = data
-    // technicalState.value = data
+
   });
 
   elevator.value.on(ElevatorEventsEnum.UP_QUEUE_FINISHED, (data) => {
     console.log(`Event ${ElevatorEventsEnum.UP_QUEUE_FINISHED} emitted`, data);
-    // elevator.value.chooseFloor(2)
-    // elevator.value.chooseFloor(5)
-    // elevator.value.chooseFloor(1)
+  
   })
   elevator.value.on(ElevatorEventsEnum.DOWN_QUEUE_FINISHED, (data) => {
     console.log(`Event ${ElevatorEventsEnum.DOWN_QUEUE_FINISHED} emitted`, data);
-    // elevator.value.chooseFloor(6)
-    // elevator.value.chooseFloor(4)//
-    // elevator.value.chooseFloor(9)//
+  
   })
+
+  elevator.value.on(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, (data: Array<number>) => {
+    selectedFloors.value = data
+    console.log(`Event ${ElevatorEventsEnum.SELECTED_FLOORS_CHANGED} emitted`, data);
+
+  })
+  elevator.value.on(ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, (data: Array<number>) => {
+    floorsOrderedDown.value = data
+    console.log(`Event ${ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED} emitted`, data);
+
+    
+  })
+  elevator.value.on(ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, (data: Array<number>) => {
+    floorsOrderedUp.value = data
+    console.log(`Event ${ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED} emitted`, data);
+
+    
+  })
+  
 }
 
 // onUpdated(()=>{
@@ -80,10 +99,12 @@ const registerEvents = () => {//
 
 onMounted(() => {
   console.log(`the component is now mounted.`);
-  elevator.value = new Elevator([0, 9]);
+  elevator.value = new Elevator({ floorRange: [0, 9], travelDelay: 300, stopDelay: 600 });
 
   // elevator.value.value = new Elevator([1, 10]);
   registerEvents()
+
+
 
   // elevator.value.run()
   // elevator.value.chooseFloor(1)
@@ -108,16 +129,24 @@ onUnmounted(() => {//
   elevator.value.destroy()
 })
 
-const onOpenDoor = () => {
-  elevator.value.openDoor()
-}
+// const onOpenDoor = () => {
+//   elevator.value.openDoor()
+// }
 
-const onCloseDoor = () => {
-  elevator.value.closeDoor()
-}
+// const onCloseDoor = () => {
+//   elevator.value.closeDoor()
+// }
 
 const onChooseFloor = (floor: number) => {
   elevator.value.chooseFloor(floor)
+}
+
+const onOrderUp = (floor:number)=>{
+  elevator.value.orderUp(floor)
+}
+
+const onOrderDown = (floor:number)=>{
+  elevator.value.orderDown(floor)
 }
 
 </script>
@@ -125,7 +154,7 @@ const onChooseFloor = (floor: number) => {
 <template>
   <main>
     <!-- <section id="controls">
-      <button class="yoyo" @click="onOpenDoor">Open Door</button>
+      <button class="" @click="onOpenDoor">Open Door</button>
       <button @click="onCloseDoor">Close Door</button>
       <button onclick=""></button>
       <p>{{ technicalState }}</p>
@@ -139,7 +168,12 @@ const onChooseFloor = (floor: number) => {
           'building__floor--current': floor === currentFloor,
           'building__floor--stopped': stoppingAtFloor === floor
         }">
-          {{ floor === 0 ? 'L' : floor }}
+          
+          <button @click="onOrderUp(floor)" class="building__floorButton" :class="{'building__floorButton--selected':floorsOrderedUp.includes(floor) }">&#9650;</button>
+          <span>
+            {{ floor === 0 ? 'L' : floor }}
+          </span> 
+          <button @click="onOrderDown(floor)" class="building__floorButton" :class="{'building__floorButton--selected':floorsOrderedDown.includes(floor) }">&#9660;</button>
         </div>
       </div>
       <div class="building__base"></div>
@@ -151,9 +185,14 @@ const onChooseFloor = (floor: number) => {
 
 
     <section id="elevator">
-      <div class="elevator_floor_buttons">
+      <div class="elevator__floorButtons">
 
-        <button @click="onChooseFloor(floor)" v-for="floor in floorNumbers" :key="floor" class="elevator_floor_button">{{ floor === 0 ? 'L' : floor }}</button>
+        <button @click="onChooseFloor(floor)" v-for="floor in floorNumbers" :key="floor" class="elevator__floorButton"
+          :class="{
+            'elevator__floorButton--selected': selectedFloors.includes(floor)
+          }">{{
+  floor === 0 ? 'L' : floor }}
+        </button>
 
 
       </div>

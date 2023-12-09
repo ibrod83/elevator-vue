@@ -56,7 +56,7 @@
 }
 
 .building__floorButton--selected{
-  background-color: red;
+  background-color: yellow;
 }
 
 .building__floor--current {

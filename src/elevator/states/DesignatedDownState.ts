@@ -7,22 +7,29 @@ export class DesignatedDownState extends State {
     async run() {
         while (this.elevator.downQueue.length && !this.elevator.isDestroyed) {
             // await delay(2000) // This line is commented out as in processUpState
-            const currentFloor = this.elevator.currentFloor - 1;      
+            const currentFloor = this.elevator.currentFloor - 1;
             // this.elevator.processFloorIntegrity(nextFloor)     
             await delay(this.elevator.travelDelay);
             const nextFloor = this.elevator.downQueue.peek();
-          
+
 
             this.elevator.currentFloor = currentFloor;
             this.elevator.emitEvent(ElevatorEventsEnum.CURRENT_FLOOR, this.elevator.currentFloor)
 
             if (currentFloor === nextFloor) {
 
+                if (this.elevator.floorsOrderedUp.includes(nextFloor)) {
+                    this.elevator.downQueue.dequeue()
+                    this.elevator.upQueue.queue(nextFloor)
+                } else {
+                    this.handleStoppedAtFloor('DOWN', currentFloor)
+                    // this.elevator.emitEvent(ElevatorEventsEnum.STOPPING_AT_FLOOR, nextFloonextFloorrnextFloorToStop)
+                    await delay(this.elevator.stopDelay); // Simulate the time taken to stop at a floor 
+                }
+
                 // this.elevator.handleRemoveFromQueue('DOWN',currentFloor)
-                this.handleStoppedAtFloor('DOWN',currentFloor)
-                // this.elevator.emitEvent(ElevatorEventsEnum.STOPPING_AT_FLOOR, nextFloonextFloorrnextFloorToStop)
-                await delay(this.elevator.stopDelay); // Simulate the time taken to stop at a floor
-                
+
+
             }
         }
         this.elevator.emitEvent(ElevatorEventsEnum.DOWN_QUEUE_FINISHED);
@@ -35,14 +42,16 @@ export class DesignatedDownState extends State {
 
     }
 
-    orderDown(floor:number){
+    orderDown(floor: number) {
+        this.handleExternalOrder(floor, 'DOWN')
         // this.elevator.handleExternalOrder('DOWN',floor)
     }
 
-    orderUp(floor:number){
+    orderUp(floor: number) {
+        this.handleExternalOrder(floor, 'UP')
         // this.elevator.handleExternalOrder('UP',floor)
     }
-    
+
 
 
     // closeDoor() {

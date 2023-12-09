@@ -34,19 +34,8 @@ export class IdleState extends State {
         this.handleExternalOrder(floor, 'UP');
     }
 
-    private handleExternalOrder(floor: number, direction: 'UP'|'DOWN') {
-        if(floor === this.elevator.currentFloor){
-            return;
-        }
-        const arrayToUpdate = direction === 'DOWN' ? this.elevator.floorsOrderedDown : this.elevator.floorsOrderedUp 
-
-        arrayToUpdate.push(floor)
-        if(floor > this.elevator.currentFloor){
-            this.handleAddToQueue('UP',floor)
-        }else{
-            this.handleAddToQueue('DOWN',floor)
-        }
-        this.elevator.emitEvent(direction === 'DOWN' ? ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED : ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED,arrayToUpdate)
+    handleExternalOrder(floor: number, direction: 'UP'|'DOWN') {
+        super.handleExternalOrder(floor,direction);
         this.elevator.switchPrincipalState(direction === 'DOWN' ? PrincipalStateEnum.DESIGNATED_DOWN : PrincipalStateEnum.DESIGNATED_UP)
     }
 

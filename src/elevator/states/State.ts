@@ -1,4 +1,4 @@
-import { ElevatorEventsEnum } from "..";
+import { ElevatorEventsEnum, PrincipalStateEnum } from "..";
 import { Elevator } from "../Elevator";
 
 
@@ -35,6 +35,21 @@ export abstract class State {
 
         this.elevator.emitEvent(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, this.elevator.selectedFloors)
 
+    }
+
+    protected handleExternalOrder(floor: number, direction: 'UP'|'DOWN') {
+        if(floor === this.elevator.currentFloor){
+            return;
+        }
+        const arrayToUpdate = direction === 'DOWN' ? this.elevator.floorsOrderedDown : this.elevator.floorsOrderedUp 
+
+        arrayToUpdate.push(floor)
+        if(floor > this.elevator.currentFloor){
+            this.handleAddToQueue('UP',floor)
+        }else{
+            this.handleAddToQueue('DOWN',floor)
+        }
+        this.elevator.emitEvent(direction === 'DOWN' ? ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED : ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED,arrayToUpdate)
     }
 
     chooseFloor(floor: number) {

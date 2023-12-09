@@ -7,25 +7,32 @@ export class DesignatedUpState extends State {
     async run() {
         while (this.elevator.upQueue.length && !this.elevator.isDestroyed) {
             // await delay(2000)
-            const nextFloor = this.elevator.currentFloor + 1 
-            await delay(this.elevator.travelDelay); 
+            const nextFloor = this.elevator.currentFloor + 1
+            await delay(this.elevator.travelDelay);
             const nextFloorToStop = this.elevator.upQueue.peek()
-           
-            
+
+
             this.elevator.currentFloor = nextFloor
             this.elevator.emitEvent(ElevatorEventsEnum.CURRENT_FLOOR, this.elevator.currentFloor)
             if (nextFloor === nextFloorToStop) {
-                // this.elevator.handleRemoveFromQueue('UP',nextFloor)
-                 this.handleStoppedAtFloor('UP',nextFloor)
-                // this.elevator.emitEvent(ElevatorEventsEnum.STOPPING_AT_FLOOR, nextFloorToStop)           
-               
-                await delay(this.elevator.stopDelay); // Simulate the time taken to stop at a floor
+                if (this.elevator.floorsOrderedDown.includes(nextFloorToStop)) {
+                    this.elevator.upQueue.dequeue()
+                    this.elevator.downQueue.queue(nextFloorToStop)
+                } else {
+                    // this.elevator.handleRemoveFromQueue('UP',nextFloor)
+                    this.handleStoppedAtFloor('UP', nextFloor)
+                    // this.elevator.emitEvent(ElevatorEventsEnum.STOPPING_AT_FLOOR, nextFloorToStop)           
 
-                
+                    await delay(this.elevator.stopDelay); // Simulate the time taken to stop at a floor 
+                }
+                // this.handleStoppedAtFloor('UP', nextFloor)
+                //     // this.elevator.emitEvent(ElevatorEventsEnum.STOPPING_AT_FLOOR, nextFloorToStop)           
+
+                //     await delay(this.elevator.stopDelay); // Simulate the time taken to stop at a floor 
             }
 
         }
-        this.elevator.emitEvent(ElevatorEventsEnum.UP_QUEUE_FINISHED,undefined);
+        this.elevator.emitEvent(ElevatorEventsEnum.UP_QUEUE_FINISHED, undefined);
         if (this.elevator.downQueue.length) {
 
             this.elevator.switchPrincipalState(PrincipalStateEnum.DESIGNATED_DOWN);
@@ -37,7 +44,8 @@ export class DesignatedUpState extends State {
 
     }
 
-    orderDown(floor:number){
+    orderDown(floor: number) {
+        this.handleExternalOrder(floor,'DOWN')
         // // this.elevator.handleExternalOrder('DOWN',floor)
         // if (floor > this.currentFloor) {
         //     this.handleAddToQueue('UP', floor)
@@ -57,12 +65,13 @@ export class DesignatedUpState extends State {
         // this.emit(direction === 'DOWN' ? ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED : ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, orderersArray)
     }
 
-    orderUp(floor:number){
+    orderUp(floor: number) {
+        this.handleExternalOrder(floor,'UP')
         // this.elevator.handleExternalOrder('UP',floor)
 
-        
+
     }
-    
+
 
     // closeDoor() {
     //     // Logic for closing the door in the up state

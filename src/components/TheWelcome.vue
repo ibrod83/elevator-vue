@@ -8,6 +8,8 @@ import { getRandomWholeNumber } from '../elevator/utils'
 
 import { ref } from 'vue'
 
+let elevator = ref(new Elevator({ floorRange: [0, 9], travelDelay: 300, stopDelay: 600 }));
+
 function getRandomHexColor() {
   return '#' + Math.floor(Math.random() * 16777215).toString(16);
 }
@@ -23,7 +25,7 @@ const floorNumbers = computed(() => {
 
 
 
-const elevator = ref(new Elevator({ floorRange: [0, 9], travelDelay: 300, stopDelay: 600 }));
+
 
 const selectedFloors = ref<Array<number>>([])
 const floorsOrderedDown = ref<Array<number>>([])

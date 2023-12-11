@@ -18,18 +18,6 @@ export class IdleState extends State {
         }
     }
 
-    orderDown(floor: number) {
-        this.handleExternalOrder(floor, 'DOWN');
-    }
-
-    orderUp(floor: number) {
-        this.handleExternalOrder(floor, 'UP');
-    }
-
-    // handleExternalOrder(floor: number, direction: 'UP'|'DOWN') {
-    //     super.handleExternalOrder(floor,direction);
-    //     this.elevator.switchPrincipalState(direction === 'DOWN' ? PrincipalStateEnum.DESIGNATED_DOWN : PrincipalStateEnum.DESIGNATED_UP)
-    // }
 
     handleExternalOrder(floor: number, direction: 'UP' | 'DOWN') {
         if(floor === this.elevator.currentFloor){

@@ -21,7 +21,7 @@ export class PriorityQueueWrapper<T>{
         }else{
             this.priorityQueue.queue(item)
             this.currentItems.push(item)
-            console.log('ENQUEUE','item: ',item, 'length: ', this.queue.length)
+            // console.log('ENQUEUE','item: ',item, 'length: ', this.queue.length)
             
         }
         
@@ -31,7 +31,7 @@ export class PriorityQueueWrapper<T>{
         const currentItem =  this.priorityQueue.dequeue()
        
         this.currentItems = this.currentItems.filter(i=>i!==currentItem)
-        console.log('DEQUEUE','current: ',currentItem, 'length: ', this.queue.length)
+        // console.log('DEQUEUE','current: ',currentItem, 'length: ', this.queue.length)
         return currentItem
     }
     peek():T{

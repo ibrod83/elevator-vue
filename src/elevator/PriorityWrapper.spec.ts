@@ -15,7 +15,7 @@ describe('PriorityQueueWrapper', () => {
         expect(pq.dequeue()).toBe(10);
         expect(pq.dequeue()).toBe(15);
 
-        expect(pq.length).toBe(0)
+        expect(pq.length).toBe(0)//
     });
 
     it('prevents duplicates when shouldPreventDuplicates is true', () => {

@@ -56,7 +56,9 @@ export abstract class State {
 
             const isExternalOrder = floorsOrdered.includes(nextFloor);
             const isCurrentFloorLast = queue.length === 1;
-
+            if(nextFloor === 5){
+                debugger;
+            }
             if (queue.peek() === nextFloor) {
                 if (isExternalOrder && !isCurrentFloorLast) {
                     queue.dequeue();

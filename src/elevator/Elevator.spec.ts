@@ -54,6 +54,8 @@ describe('Elevator', () => {
         floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
         expect(floor).toBe(5)
 
+        elevator.orderDown(6)
+
         floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
         expect(floor).toBe(7)
 

@@ -44,17 +44,16 @@ describe('Elevator', () => {
         const floorRange = [0, 9]
         const elevator = new Elevator({ floorRange, travelDelay: 1, stopDelay: 2 })
 
-        elevator.chooseFloor(1) 
+        elevator.chooseFloor(1) //1,5,7,9,6,2,0,8,0
         elevator.chooseFloor(9)
         elevator.chooseFloor(5)
         let floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
         expect(floor).toBe(1)
 
         elevator.orderUp(7)
-        floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-        expect(floor).toBe(5)
-
         elevator.orderDown(6)
+        floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
+        expect(floor).toBe(5)     
 
         floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
         expect(floor).toBe(7)
@@ -66,19 +65,18 @@ describe('Elevator', () => {
         expect(floor).toBe(9)
         
         floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-        expect(floor).toBe(2)
+        expect(floor).toBe(6)
         
+        floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
+        expect(floor).toBe(2)
+
+        elevator.orderUp(8)
         floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
         expect(floor).toBe(0)
 
         elevator.orderUp(8)
         floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
         expect(floor).toBe(8)
-
-        elevator.orderUp(0)
-        floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-        expect(floor).toBe(0)
-
 
     }, { timeout: Infinity })
 

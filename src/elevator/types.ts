@@ -51,6 +51,13 @@ export interface ElevatorTrackingState{
     currentFloor: number 
 }
 
+export interface Request{
+    type:'REQUEST_SPECIFIC_FLOOR'|'REQUEST_DIRECTION'
+    floor:number
+    requestDirection?:'UP'|'DOWN'
+}
+
+
 // // Interface for the principal state of the elevator
 // export interface PrincipalState {
 //     chooseFloor(floor: number): void;

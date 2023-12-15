@@ -1,6 +1,11 @@
 import { ElevatorEventsEnum, PrincipalStateEnum } from "..";
 import { Elevator } from "../Elevator";
+import type { PriorityQueueWrapper } from "../PriorityQueueWrapper";
+import type { Request } from "../types";
 import { delay } from "../utils";
+
+const DIRECTION_UP = 'UP';
+const DIRECTION_DOWN = 'DOWN';
 export abstract class State {
     protected elevator: Elevator;
 
@@ -11,26 +16,9 @@ export abstract class State {
     // public abstract orderUp(floor: number): void;
     // public abstract orderDown(floor: number): void;
     public abstract run(): void;
+   
 
-    protected handleAddToQueue(direction: 'DOWN' | 'UP', floor: number) {
-        const queue = direction === 'DOWN' ? this.elevator.downQueue : this.elevator.upQueue
-        queue.queue(floor)
-    }
-    protected handleChooseFloor(direction: 'DOWN' | 'UP', floor: number) {
-
-        if (this.elevator.selectedFloors.includes(floor)) {
-            return
-        }
-
-        this.handleAddToQueue(direction, floor)
-
-        this.elevator.selectedFloors.push(floor)//
-
-        this.elevator.emitEvent(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, this.elevator.selectedFloors)
-
-    }
-
-    protected switchToNextState() {
+    private switchToNextState() {
         if (this.elevator.upQueue.length) {
             this.elevator.switchPrincipalState(PrincipalStateEnum.DESIGNATED_UP);
         } else if (this.elevator.downQueue.length) {
@@ -40,31 +28,38 @@ export abstract class State {
         }
     }
 
+    // New function to handle queue switching
+    private switchQueueIfNeeded(currentRequest: Request, currentQueue: PriorityQueueWrapper<Request>, oppositeQueue: PriorityQueueWrapper<Request>, isMovingUp: boolean) {
+        if (currentRequest.requestDirection === (isMovingUp ? DIRECTION_DOWN : DIRECTION_UP)) {
+            currentQueue.dequeue();
+            oppositeQueue.queue({
+                floor: currentRequest.floor,
+                type: "REQUEST_DIRECTION",
+                requestDirection: currentRequest.requestDirection
+            });
+            return true;
+        }
+        return false;
+    }
+
     protected async processQueue(direction: 'UP' | 'DOWN') {
-        const isMovingUp = direction === 'UP';
-        const queue = isMovingUp ? this.elevator.upQueue : this.elevator.downQueue;
-        const floorsOrdered = isMovingUp ? this.elevator.floorsOrderedDown : this.elevator.floorsOrderedUp;
+        const isMovingUp = direction === DIRECTION_UP;
+        const currentQueue = isMovingUp ? this.elevator.upQueue : this.elevator.downQueue;
         const oppositeQueue = isMovingUp ? this.elevator.downQueue : this.elevator.upQueue;
 
-        while (queue.length && !this.elevator.isDestroyed) {
+        while (currentQueue.length && !this.elevator.isDestroyed) {
             const nextFloor = this.elevator.currentFloor + (isMovingUp ? 1 : -1);
             await delay(this.elevator.travelDelay);
 
-            // Update the current floor
             this.elevator.currentFloor = nextFloor;
-            this.elevator.emitEvent(ElevatorEventsEnum.CURRENT_FLOOR, this.elevator.currentFloor);
+            this.elevator.emitEvent(ElevatorEventsEnum.CURRENT_FLOOR, nextFloor);
 
-            const isExternalOrder = floorsOrdered.includes(nextFloor);
-            const isCurrentFloorLast = queue.length === 1;
-            if(nextFloor === 5){
-                debugger;
-            }
-            if (queue.peek() === nextFloor) {
-                if (isExternalOrder && !isCurrentFloorLast) {
-                    queue.dequeue();
-                    oppositeQueue.queue(nextFloor);
-                    continue;
-                }
+            const currentRequest = currentQueue.peek();
+
+            if (currentRequest.floor === nextFloor) {
+                const switched = this.switchQueueIfNeeded(currentRequest, currentQueue, oppositeQueue, isMovingUp);
+                if (switched) continue;
+
                 this.handleStoppedAtFloor(direction, nextFloor);
                 await delay(this.elevator.stopDelay);
             }
@@ -73,22 +68,44 @@ export abstract class State {
         this.switchToNextState();
     }
 
-    handleExternalOrder(floor: number, direction: 'UP' | 'DOWN') {
+
+    protected handleChooseFloor(locationRelativeToCurrent: 'DOWN' | 'UP', floor: number) {
+
+        if (this.elevator.selectedFloors.includes(floor)) {
+            return
+        }
+
+        const request: Request = { floor, type: 'REQUEST_SPECIFIC_FLOOR' }
+        if (locationRelativeToCurrent === 'DOWN') {
+            this.elevator.downQueue.queue(request)
+        } else {
+            this.elevator.upQueue.queue(request)
+        }
+
+        this.elevator.selectedFloors.push(floor)//
+
+        this.elevator.emitEvent(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, this.elevator.selectedFloors)
+
+    }
+
+   
+
+    handleExternalOrder(floor: number, requestDirection: 'UP' | 'DOWN') {
         if (floor === this.elevator.currentFloor) {
             return;
         }
-        const arrayToUpdate = direction === 'DOWN' ? this.elevator.floorsOrderedDown : this.elevator.floorsOrderedUp
-
+        const arrayToUpdate = requestDirection === 'DOWN' ? this.elevator.floorsOrderedDown : this.elevator.floorsOrderedUp
+        const request: Request = { floor, type: 'REQUEST_DIRECTION', requestDirection }
         arrayToUpdate.push(floor)
         if (floor > this.elevator.currentFloor) {
-            this.handleAddToQueue('UP', floor)
+            this.elevator.upQueue.queue(request)
         } else {
-            this.handleAddToQueue('DOWN', floor)
+            this.elevator.downQueue.queue(request)
         }
-        this.elevator.emitEvent(direction === 'DOWN' ? ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED : ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, arrayToUpdate)
+        this.elevator.emitEvent(requestDirection === 'DOWN' ? ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED : ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, arrayToUpdate)
 
     }
-    
+
 
     orderDown(floor: number) {
         this.handleExternalOrder(floor, 'DOWN')
@@ -98,7 +115,7 @@ export abstract class State {
         this.handleExternalOrder(floor, 'UP')
     }
 
-    
+
     chooseFloor(floor: number) {
         if (floor < this.elevator.currentFloor) {
 
@@ -125,5 +142,5 @@ export abstract class State {
         this.elevator.emitEvent(ElevatorEventsEnum.STOPPING_AT_FLOOR, this.elevator.currentFloor)
     }
 
-    
+
 }

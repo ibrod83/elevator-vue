@@ -2,13 +2,11 @@
 import './Elevator.css'
 import { Elevator, ElevatorEventsEnum, TechnicalStateEnum } from '@/elevator';
 
-import { onMounted, onUnmounted, onUpdated, computed } from 'vue'
-
-import { getRandomWholeNumber } from '../elevator/utils'
+import { onMounted, onUnmounted, computed, markRaw } from 'vue'
 
 import { ref } from 'vue'
 
-let elevator = ref(new Elevator({ floorRange: [0, 9], travelDelay: 300, stopDelay: 600 }));
+let elevator = ref(markRaw(new Elevator({ floorRange: [0, 9], travelDelay: 300, stopDelay: 600 })));
 
 function getRandomHexColor() {
   return '#' + Math.floor(Math.random() * 16777215).toString(16);
@@ -26,7 +24,7 @@ const floorNumbers = computed(() => {
 
 
 
-
+const dummy = ref<number>(1)
 const selectedFloors = ref<Array<number>>([])
 const floorsOrderedDown = ref<Array<number>>([])
 const floorsOrderedUp = ref<Array<number>>([])
@@ -41,7 +39,7 @@ const changeColor = () => {
 }
 
 
-const registerEvents = () => {//
+const registerEvents = () => {
   elevator.value.on(ElevatorEventsEnum.DOOR_CLOSING_CANCELED, (data) => {
     console.log(`Event ${ElevatorEventsEnum.DOOR_CLOSING_CANCELED} emitted`, data);
 
@@ -76,18 +74,19 @@ const registerEvents = () => {//
   })
 
   elevator.value.on(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, (data: Array<number>) => {
-    selectedFloors.value = data
-    console.log(`Event ${ElevatorEventsEnum.SELECTED_FLOORS_CHANGED} emitted`, data);
+    selectedFloors.value = [...data]
+    console.log(`Event ${ElevatorEventsEnum.SELECTED_FLOORS_CHANGED} emitted`, data); 
+
 
   })
   elevator.value.on(ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, (data: Array<number>) => {
-    floorsOrderedDown.value = data
+    floorsOrderedDown.value = [...data]
     console.log(`Event ${ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED} emitted`, data);
 
     
   })
   elevator.value.on(ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, (data: Array<number>) => {
-    floorsOrderedUp.value = data
+    floorsOrderedUp.value =  [...data]
     console.log(`Event ${ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED} emitted`, data);
 
     
@@ -101,26 +100,10 @@ const registerEvents = () => {//
 
 onMounted(() => {
   console.log(`the component is now mounted.`);
-  elevator.value = new Elevator({ floorRange: [0, 9], travelDelay: 800, stopDelay: 1200 });
+  elevator.value = new Elevator(markRaw({ floorRange: [0, 9], travelDelay: 800, stopDelay: 1200 }));
 
-  // elevator.value.value = new Elevator([1, 10]);
   registerEvents()
 
-
-
-  // elevator.value.run()
-  // elevator.value.chooseFloor(1)
-  // elevator.value.chooseFloor(3)
-  // elevator.value.chooseFloor(7)
-
-  // setTimeout(() => {
-  //   elevator.value.orderUp(5)
-  // }, 1000)
-  // elevator.value.chooseFloor(5)
-  // elevator.value.chooseFloor(0)
-
-  // elevator.value.processUpState()
-  // elevator.value.processIdleState()
 
 
 });

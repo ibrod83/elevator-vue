@@ -34,7 +34,6 @@ export enum ElevatorEventsEnum {
     FLOORS_ORDERED_UP_CHANGED = 'FLOORS_ORDERED_UP_CHANGED',
     FLOORS_ORDERED_DOWN_CHANGED = 'FLOORS_ORDERED_DOWN_CHANGED',
     ERROR_FLOOR_OUT_OF_RANGE='ERROR_FLOOR_OUT_OF_RANGE',
-    // TRACKING_STATE_CHANGED= 'TRACKING_STATE_CHANGED'
 
 }
 
@@ -58,11 +57,3 @@ export interface Request{
 }
 
 
-// // Interface for the principal state of the elevator
-// export interface PrincipalState {
-//     chooseFloor(floor: number): void;
-//     openDoor(): void;
-//     closeDoor(): void;
-//     orderUp(): void;
-//     orderDown(): void;
-// }

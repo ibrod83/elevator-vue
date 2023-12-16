@@ -27,13 +27,6 @@ export function createDeferred<T>(): Deferred<T> {
 }
 
 
-export function doesArrayIncludeLargerNumber(number: number, arrayOfNumbers: number[]) {
-  return arrayOfNumbers.some(n => n > number)
-}
-
-export function doesArrayIncludeSmallerNumber(number: number, arrayOfNumbers: number[]) {
-  return arrayOfNumbers.some(n => n < number)
-}
 
 export function getRandomWholeNumber(min:number, max:number) {
   // Ensure that the min and max are whole numbers

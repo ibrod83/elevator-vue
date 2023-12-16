@@ -1,4 +1,3 @@
-import { PrincipalStateEnum, TechnicalStateEnum } from ".";
 
 export function delay(mil: number) {
   return new Promise((res) => {
@@ -28,7 +27,7 @@ export function createDeferred<T>(): Deferred<T> {
 
 
 
-export function getRandomWholeNumber(min:number, max:number) {
+export function getRandomWholeNumber(min: number, max: number) {
   // Ensure that the min and max are whole numbers
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -37,4 +36,14 @@ export function getRandomWholeNumber(min:number, max:number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-
+export function hasLowerOrHigherFloor(hashmap: { [index: number]: string|null }, currentFloor: number, checkHigher: boolean): boolean {
+  for (const key in hashmap) {
+    const currentKey = parseInt(key);
+    if (checkHigher && hashmap[currentKey] && currentKey > currentFloor) {
+      return true;
+    } else if (!checkHigher && hashmap[currentKey] && currentKey < currentFloor) {
+      return true;
+    }
+  }
+  return false;
+}

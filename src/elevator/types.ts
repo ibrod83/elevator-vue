@@ -43,17 +43,12 @@ export interface ElevatorConfig{
     stopDelay:number
 }
 
-export interface ElevatorTrackingState{
-    selectedFloors: number[] 
-    floorsOrderedUp: number[]
-    floorsOrderedDown: number[] 
-    currentFloor: number 
-}
 
-export interface Request{
-    type:'REQUEST_SPECIFIC_FLOOR'|'REQUEST_DIRECTION'
-    floor:number
-    requestDirection?:'UP'|'DOWN'
+
+export enum RequestTypeEnum{
+    UP='UP',
+    DOWN = 'DOWN',
+    SPECIFIC='SPECIFIC'
 }
 
 

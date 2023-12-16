@@ -100,7 +100,7 @@ const registerEvents = () => {
 
 onMounted(() => {
   console.log(`the component is now mounted.`);
-  elevator.value = new Elevator(markRaw({ floorRange: [0, 9], travelDelay: 800, stopDelay: 1200 }));
+  elevator.value = new Elevator(markRaw({ floorRange: [0, 9], travelDelay: 450, stopDelay: 900 }));
 
   registerEvents()
 

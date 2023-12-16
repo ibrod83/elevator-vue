@@ -37,7 +37,7 @@ describe('Elevator', () => {
         floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
         expect(floor).toBe(0)
 
-    }, { timeout: Infinity })
+    })
 
     it('Should travel up and down correctly, via internal and external commands', async () => {
 
@@ -78,7 +78,7 @@ describe('Elevator', () => {
         floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
         expect(floor).toBe(8)
 
-    }, { timeout: Infinity })
+    })
 
     it('Should handle last floor up and down edge cases', async () => {
 
@@ -103,12 +103,29 @@ describe('Elevator', () => {
         expect(floor).toBe(0)
 
 
-    }, { timeout: Infinity })
+    })
+
+    it('Should stop if a floor ordered opposite direction, and there are no more floors in the current direction', async () => {
+
+        const floorRange = [0, 9]
+        const elevator = new Elevator({ floorRange, travelDelay: 1, stopDelay: 2 })
+        
+
+        elevator.orderDown(5)
+        var floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
+        expect(floor).toBe(5)     
+
+        elevator.orderUp(2)
+        floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
+        expect(floor).toBe(2)     
+
+
+    })
 
     it('Range test', async () => {
 
         const floorRange = [0, 9]
-        const elevator = new Elevator({ floorRange, travelDelay: 1, stopDelay: 2 })
+        const elevator = new Elevator({ floorRange, travelDelay: 1, stopDelay: 1 })
 
 
         for (let i = 0; i < 100; i++) {//
@@ -120,7 +137,7 @@ describe('Elevator', () => {
             expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
             expect(floor).toBeLessThanOrEqual(floorRange[1]);//
             elevator.chooseFloor(getRandomWholeNumber(0, 9))
-            await delay(1)
+            // await delay(1)
             elevator.chooseFloor(getRandomWholeNumber(0, 9))
             floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
             expect(floor).toBeGreaterThanOrEqual(floorRange[0]);

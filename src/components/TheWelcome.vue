@@ -6,7 +6,9 @@ import { onMounted, onUnmounted, computed, markRaw } from 'vue'
 
 import { ref } from 'vue'
 
-let elevator = ref(markRaw(new Elevator({ floorRange: [0, 9], travelDelay: 300, stopDelay: 600 })));
+const elevatorConfig = { floorRange: [0, 9], travelDelay: 300, stopDelay: 600 }
+
+let elevator = ref(markRaw(new Elevator(elevatorConfig)));
 
 function getRandomHexColor() {
   return '#' + Math.floor(Math.random() * 16777215).toString(16);
@@ -14,7 +16,7 @@ function getRandomHexColor() {
 
 const technicalState = ref(TechnicalStateEnum.DOOR_CLOSED)
 
-const floorRange = ref([0, 9])
+const floorRange = ref([-2, 9])
 
 const floorNumbers = computed(() => {
   const [start, end] = floorRange.value;
@@ -66,16 +68,16 @@ const registerEvents = () => {
 
   elevator.value.on(ElevatorEventsEnum.UP_QUEUE_FINISHED, (data) => {
     console.log(`Event ${ElevatorEventsEnum.UP_QUEUE_FINISHED} emitted`, data);
-  
+
   })
   elevator.value.on(ElevatorEventsEnum.DOWN_QUEUE_FINISHED, (data) => {
     console.log(`Event ${ElevatorEventsEnum.DOWN_QUEUE_FINISHED} emitted`, data);
-  
+
   })
 
   elevator.value.on(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, (data: Array<number>) => {
     selectedFloors.value = [...data]
-    console.log(`Event ${ElevatorEventsEnum.SELECTED_FLOORS_CHANGED} emitted`, data); 
+    console.log(`Event ${ElevatorEventsEnum.SELECTED_FLOORS_CHANGED} emitted`, data);
 
 
   })
@@ -83,15 +85,15 @@ const registerEvents = () => {
     floorsOrderedDown.value = [...data]
     console.log(`Event ${ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED} emitted`, data);
 
-    
+
   })
   elevator.value.on(ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, (data: Array<number>) => {
-    floorsOrderedUp.value =  [...data]
+    floorsOrderedUp.value = [...data]
     console.log(`Event ${ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED} emitted`, data);
 
-    
+
   })
-  
+
 }
 
 // onUpdated(()=>{
@@ -100,7 +102,7 @@ const registerEvents = () => {
 
 onMounted(() => {
   console.log(`the component is now mounted.`);
-  elevator.value = new Elevator(markRaw({ floorRange: [0, 9], travelDelay: 450, stopDelay: 900 }));
+  elevator.value = new Elevator(markRaw(elevatorConfig));
 
   registerEvents()
 
@@ -126,11 +128,11 @@ const onChooseFloor = (floor: number) => {
   elevator.value.chooseFloor(floor)
 }
 
-const onOrderUp = (floor:number)=>{
+const onOrderUp = (floor: number) => {
   elevator.value.orderUp(floor)
 }
 
-const onOrderDown = (floor:number)=>{
+const onOrderDown = (floor: number) => {
   elevator.value.orderDown(floor)
 }
 
@@ -153,33 +155,26 @@ const onOrderDown = (floor:number)=>{
           'building__floor--current': floor === currentFloor,
           'building__floor--stopped': stoppingAtFloor === floor
         }">
-          
-          <button @click="onOrderUp(floor)" class="building__floorButton" :class="{'building__floorButton--selected':floorsOrderedUp.includes(floor) }">&#9650;</button>
+
+          <button  v-bind:disabled="floor === floorRange[1]" @click="onOrderUp(floor)" class="building__floorButton"
+            :class="{ 'building__floorButton--selected': floorsOrderedUp.includes(floor) }">&#9650;</button>
           <span>
             {{ floor === 0 ? 'L' : floor }}
-          </span> 
-          <button @click="onOrderDown(floor)" class="building__floorButton" :class="{'building__floorButton--selected':floorsOrderedDown.includes(floor) }">&#9660;</button>
+          </span>
+          <button v-bind:disabled="floor === floorRange[0]" @click="onOrderDown(floor)" class="building__floorButton"
+            :class="{ 'building__floorButton--selected': floorsOrderedDown.includes(floor) }">&#9660;</button>
         </div>
       </div>
       <div class="building__base"></div>
-
-
-
     </section>
-
-
 
     <section id="elevator">
       <div class="elevator__floorButtons">
-
         <button @click="onChooseFloor(floor)" v-for="floor in floorNumbers" :key="floor" class="elevator__floorButton"
           :class="{
             'elevator__floorButton--selected': selectedFloors.includes(floor)
-          }">{{
-  floor === 0 ? 'L' : floor }}
+          }">{{ floor === 0 ? 'L' : floor }}
         </button>
-
-
       </div>
     </section>
 

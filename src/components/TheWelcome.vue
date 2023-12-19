@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import './Elevator.css'
-import { Elevator, ElevatorEventsEnum, TechnicalStateEnum } from '@/elevator';
+import { Elevator, ElevatorEventsEnum, StateEnum } from '@/elevator';
 
 import { onMounted, onUnmounted, computed, markRaw } from 'vue'
 
 import { ref } from 'vue'
 
-const elevatorConfig = { floorRange: [0, 9], travelDelay: 300, stopDelay: 600 }
+
+
+const elevatorConfig = { floorRange: [0, 9], travelDelay: 1000, openDoorDelay: 500, closeDoorDelay: 500 }
 
 let elevator = ref(markRaw(new Elevator(elevatorConfig)));
 
@@ -14,9 +16,9 @@ function getRandomHexColor() {
   return '#' + Math.floor(Math.random() * 16777215).toString(16);
 }
 
-const technicalState = ref(TechnicalStateEnum.DOOR_CLOSED)
+const state = ref(StateEnum.READY_FOR_MOVEMENT)
 
-const floorRange = ref([-2, 9])
+const floorRange = ref(elevatorConfig.floorRange)
 
 const floorNumbers = computed(() => {
   const [start, end] = floorRange.value;
@@ -47,9 +49,9 @@ const registerEvents = () => {
 
   });
 
-  elevator.value.on(ElevatorEventsEnum.TECHNICAL_STATE_CHANGE, (data) => {
-    console.log(`Event ${ElevatorEventsEnum.TECHNICAL_STATE_CHANGE} emitted`, data);
-    technicalState.value = data
+  elevator.value.on(ElevatorEventsEnum.STATE_CHANGE, (data) => {
+    console.log(`Event ${ElevatorEventsEnum.STATE_CHANGE} emitted`, data);
+    state.value = data
   });
 
   elevator.value.on(ElevatorEventsEnum.CURRENT_FLOOR, (data) => {
@@ -144,7 +146,7 @@ const onOrderDown = (floor: number) => {
       <button class="" @click="onOpenDoor">Open Door</button>
       <button @click="onCloseDoor">Close Door</button>
       <button onclick=""></button>
-      <p>{{ technicalState }}</p>
+      <p>{{ state }}</p>
       <p :style="{ color: color }">This is a paragraph with dynamic color.</p>
       <button @click="changeColor">Change Color</button>
     </section> -->
@@ -156,13 +158,15 @@ const onOrderDown = (floor: number) => {
           'building__floor--stopped': stoppingAtFloor === floor
         }">
 
-          <button  v-bind:disabled="floor === floorRange[1]" @click="onOrderUp(floor)" class="building__floorButton"
-            :class="{ 'building__floorButton--selected': floorsOrderedUp.includes(floor) }">&#9650;</button>
+          <button @click="onOrderUp(floor)" class="building__floorButton"
+            :class="{ 'building__floorButton--selected': floorsOrderedUp.includes(floor) }">&#9650;
+          </button>
           <span>
             {{ floor === 0 ? 'L' : floor }}
           </span>
-          <button v-bind:disabled="floor === floorRange[0]" @click="onOrderDown(floor)" class="building__floorButton"
-            :class="{ 'building__floorButton--selected': floorsOrderedDown.includes(floor) }">&#9660;</button>
+          <button @click="onOrderDown(floor)" class="building__floorButton"
+            :class="{ 'building__floorButton--selected': floorsOrderedDown.includes(floor) }">&#9660;
+          </button>
         </div>
       </div>
       <div class="building__base"></div>
@@ -176,6 +180,10 @@ const onOrderDown = (floor: number) => {
           }">{{ floor === 0 ? 'L' : floor }}
         </button>
       </div>
+    </section>
+
+    <section id="indicators">
+      <p>{{ state }}</p>
     </section>
 
   </main>

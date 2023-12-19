@@ -1,9 +1,9 @@
 import { Elevator } from "./Elevator";
-import {ElevatorEventsEnum, TechnicalStateEnum,PrincipalStateEnum } from "./types";
+import {ElevatorEventsEnum, StateEnum,DesignatedDirectionEnum } from "./types";
 
 export{
     Elevator,
     ElevatorEventsEnum,
-    TechnicalStateEnum,
-    PrincipalStateEnum
+    StateEnum,
+    DesignatedDirectionEnum
 }

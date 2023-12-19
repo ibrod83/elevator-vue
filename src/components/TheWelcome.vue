@@ -8,7 +8,7 @@ import { ref } from 'vue'
 
 
 
-const elevatorConfig = { floorRange: [0, 9], travelDelay: 1000, openDoorDelay: 500, closeDoorDelay: 500 }
+const elevatorConfig = { floorRange: [-2, 9], travelDelay: 750, openDoorDelay: 500, closeDoorDelay: 500 }
 
 let elevator = ref(markRaw(new Elevator(elevatorConfig)));
 

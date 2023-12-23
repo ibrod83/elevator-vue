@@ -36,14 +36,44 @@ export function getRandomWholeNumber(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export function hasLowerOrHigherFloor(hashmap: { [index: number]: string|null }, currentFloor: number, checkHigher: boolean): boolean {
-  for (const key in hashmap) {
-    const currentKey = parseInt(key);
-    if (checkHigher && hashmap[currentKey] && currentKey > currentFloor) {
+
+
+export function hasLowerOrHigherNumber(
+  currentFloor: number, 
+  checkHigher: boolean,
+  ...numberArrays: number[][]
+): boolean {
+  // Combine all arrays into a single array
+  const combinedFloors = numberArrays.flat();
+
+  // Check for a higher or lower floor
+  for (const floor of combinedFloors) {
+    if (checkHigher && floor > currentFloor) {
       return true;
-    } else if (!checkHigher && hashmap[currentKey] && currentKey < currentFloor) {
+    } else if (!checkHigher && floor < currentFloor) {
       return true;
     }
   }
+
+  // Return false if no matching floor is found
   return false;
 }
+
+export function hasHigher(
+  currentFloor: number,   
+  ...numberArrays: number[][]
+): boolean {
+  return hasLowerOrHigherNumber(currentFloor,true,...numberArrays)
+}
+
+
+export function hasLower(
+  currentFloor: number,   
+  ...numberArrays: number[][]
+): boolean {
+  return hasLowerOrHigherNumber(currentFloor,false,...numberArrays)
+}
+
+
+
+

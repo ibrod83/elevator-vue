@@ -1,5 +1,5 @@
-import { Elevator } from "./Elevator";
-import {ElevatorEventsEnum, StateEnum,DesignatedDirectionEnum } from "./types";
+import { Elevator } from "./Elevator/Elevator";
+import {ElevatorEventsEnum, StateEnum,DesignatedDirectionEnum } from "./Elevator/types";
 
 export{
     Elevator,

@@ -1,22 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { Elevator, ElevatorEventsEnum } from '.';
+import { Elevator, ElevatorEventsEnum } from '../';
 import { delay, getRandomWholeNumber } from './utils';
-import type { EventEmitter } from './EventEmitter';
+import { waitForEvent } from '../testUtils';
+import type { ElevatorConfig } from './types';
 
 
-function waitForEvent(eventEmitter: EventEmitter, eventName: string) {
-    return new Promise(resolve => {
-        const handler = (data: any) => {
-            resolve(data);
-        };
-        eventEmitter.once(eventName, handler);  // using 'once' instead of 'on' to automatically remove listener after triggering
-    });
-}
 
-const testTimeout = 10000
+
+const testTimeout = 30000
 
 const floorRange = [0, 9]
-const elevatorConfig={floorRange, travelDelay: 1, openDoorDelay: 2,closeDoorDelay:2}
+const elevatorConfig:ElevatorConfig={floorRange, travelDelay: 1, doorTimerDelay:1,completeDoorCycleTime:5,doorSteps:5}
 
 describe('Elevator', () => {
     it('Should travel up and down correctly, via internal commands', async () => {
@@ -81,47 +75,7 @@ describe('Elevator', () => {
 
     },{timeout:testTimeout})
 
-    // it('Should travel up and down correctly, via internal and external commands', async () => {
-
-    //     const floorRange = [0, 9]
-    //     const elevator = new Elevator({ floorRange, travelDelay: 1, stopDelay: 2 })
-
-    //     elevator.chooseFloor(1) //1,5,7,9,6,2,0,8,0
-    //     elevator.chooseFloor(9)
-    //     elevator.chooseFloor(5)
-    //     let floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-    //     expect(floor).toBe(1)
-
-    //     elevator.orderUp(7)
-    //     elevator.orderDown(6)
-    //     floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-    //     expect(floor).toBe(5)     
-
-    //     floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-    //     expect(floor).toBe(7)
-
-    //     elevator.orderDown(2)
-
-    //     elevator.chooseFloor(0)
-    //     floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-    //     expect(floor).toBe(9)
-    //     //switches direction
-        
-    //     floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-    //     expect(floor).toBe(6)
-        
-    //     floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-    //     expect(floor).toBe(2)
-
-    //     elevator.orderUp(8)
-    //     floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-    //     expect(floor).toBe(0)
-
-    //     elevator.orderUp(8)
-    //     floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-    //     expect(floor).toBe(8)
-
-    // })
+   
 
     it('Should handle last floor up and down edge cases', async () => {
 
@@ -146,7 +100,7 @@ describe('Elevator', () => {
         expect(floor).toBe(0)
 
 
-    })
+    },{timeout:testTimeout})
 
     it('Should stop if a floor ordered opposite direction, and there are no more floors in the current direction', async () => {
 
@@ -165,36 +119,66 @@ describe('Elevator', () => {
 
     },{timeout:testTimeout})
 
-    // it('Range test', async () => {
+    
+    it('Should avoid switching direction if current direction is not finished', async () => {//
 
-    //     const floorRange = [0, 9]
-    //     const elevator = new Elevator({ floorRange, travelDelay: 1, stopDelay: 1 })
+        const floorRange = [0, 9]
+        const elevator = new Elevator(elevatorConfig)
+        
+
+        elevator.chooseFloor(9)
+        var floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
+        expect(floor).toBe(9)     
+
+        elevator.chooseFloor(0)
+        while(true){
+            const floor = await waitForEvent(elevator, ElevatorEventsEnum.CURRENT_FLOOR)
+            if(floor === 6){
+                elevator.orderUp(8)
+                elevator.chooseFloor(3)
+                break;
+            }    
+        }
+       
+
+        floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
+        expect(floor).toBe(3)  
+        
+        floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
+        expect(floor).toBe(0)
+        
+        floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
+        expect(floor).toBe(8)  
 
 
-    //     for (let i = 0; i < 100; i++) {//
-    //         elevator.chooseFloor(1)
-    //         await delay(1)
-    //         elevator.chooseFloor(9)
-    //         elevator.chooseFloor(5)
-    //         let floor = await waitForEvent(elevator, ElevatorEventsEnum.CURRENT_FLOOR)
-    //         expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
-    //         expect(floor).toBeLessThanOrEqual(floorRange[1]);//
-    //         elevator.chooseFloor(getRandomWholeNumber(0, 9))
-    //         // await delay(1)
-    //         elevator.chooseFloor(getRandomWholeNumber(0, 9))
-    //         floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-    //         expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
-    //         expect(floor).toBeLessThanOrEqual(floorRange[1]);
-    //         elevator.chooseFloor(getRandomWholeNumber(0, 9))//
-    //         await delay(1)
-    //         elevator.chooseFloor(getRandomWholeNumber(0, 9))
-    //         floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-    //         expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
-    //         expect(floor).toBeLessThanOrEqual(floorRange[1]);
-    //     }
+    },{timeout:testTimeout})
 
+    it('Range test', async () => {
 
+        const floorRange = [0, 9]
+        const elevator = new Elevator({...elevatorConfig,doorSteps:1})
 
+        for (let i = 0; i < 100; i++) {//
+            elevator.chooseFloor(1)
+            await delay(1)
+            elevator.chooseFloor(9)
+            elevator.chooseFloor(5)
+            let floor = await waitForEvent(elevator, ElevatorEventsEnum.CURRENT_FLOOR)
+            expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
+            expect(floor).toBeLessThanOrEqual(floorRange[1]);//
+            elevator.chooseFloor(getRandomWholeNumber(0, 9))
+            // await delay(1)
+            elevator.chooseFloor(getRandomWholeNumber(0, 9))
+            floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
+            expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
+            expect(floor).toBeLessThanOrEqual(floorRange[1]);
+            elevator.chooseFloor(getRandomWholeNumber(0, 9))//
+            await delay(1)
+            elevator.chooseFloor(getRandomWholeNumber(0, 9))
+            floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
+            expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
+            expect(floor).toBeLessThanOrEqual(floorRange[1]);
+        }
 
-    // }, { timeout: 30000 })
+    }, { timeout: 30000 })
 });

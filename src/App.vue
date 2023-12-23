@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import TheWelcome from './components/TheWelcome.vue'
+import Elevator from './components/Elevator.vue'
 </script>
 
 <template>
  
-    <TheWelcome />
+    <Elevator />
 
 </template>
 

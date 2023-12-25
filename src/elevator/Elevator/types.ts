@@ -36,6 +36,7 @@ export enum ElevatorEventsEnum {
 }
 
 export interface ElevatorConfig {
+    id:number
     floorRange: Array<number>
     travelDelay?: number
     doorTimerDelay?:number

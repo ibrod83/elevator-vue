@@ -1,19 +1,23 @@
 <script setup lang="ts">
+import { Dispatcher } from '@/elevator/Dispatcher/Dispatcher';
 import './Elevator.css'
 import { DesignatedDirectionEnum, Elevator, ElevatorEventsEnum, StateEnum } from '@/elevator';
 import type { ElevatorConfig } from '@/elevator/Elevator/types';
-// import type { ElevatorConfig } from '@/elevator/types';
 
-import { onMounted, onUnmounted, computed, markRaw } from 'vue'
+import { onMounted, onUnmounted, computed, markRaw, type Ref, type Raw } from 'vue'
 
 import { ref } from 'vue'
 
 
 
-const elevatorConfig: ElevatorConfig = { floorRange: [-1, 9], travelDelay: 500, completeDoorCycleTime: 1000, doorTimerDelay: 1500 }
+const elevatorConfig: ElevatorConfig = { id: 1, floorRange: [-1, 9], travelDelay: 500, completeDoorCycleTime: 1000, doorTimerDelay: 1500 }
 
-let elevator = ref(markRaw(new Elevator(elevatorConfig)));
+ const elevator = new Elevator((elevatorConfig));
+ const dispatcher = new Dispatcher([elevator])
 
+//  alert('yoyo')
+// let elevator: Ref<Raw<Elevator> | null> = ref(null);
+// let dispatcher: Ref<Raw<Dispatcher> | null> = ref(null);
 function getRandomHexColor() {
   return '#' + Math.floor(Math.random() * 16777215).toString(16);
 }
@@ -41,29 +45,23 @@ const color = ref(getRandomHexColor());
 const currentFloor = ref(0)
 const stoppingAtFloor = ref<number | null>(0)
 
-
-const changeColor = () => {
-  color.value = getRandomHexColor()
-}
-
-
 const registerEvents = () => {
-  elevator.value.on(ElevatorEventsEnum.DOOR_CLOSING_CANCELED, (data) => {
+  elevator.on(ElevatorEventsEnum.DOOR_CLOSING_CANCELED, (data) => {
     console.log(`Event ${ElevatorEventsEnum.DOOR_CLOSING_CANCELED} emitted`, data);
 
   });
 
-  elevator.value.on(ElevatorEventsEnum.STATE_CHANGE, (data) => {
+  elevator.on(ElevatorEventsEnum.STATE_CHANGE, (data) => {
     console.log(`Event ${ElevatorEventsEnum.STATE_CHANGE} emitted`, data);
     state.value = data
   });
 
-  elevator.value.on(ElevatorEventsEnum.DESIGNATION_CHANGE, (data) => {
+  elevator.on(ElevatorEventsEnum.DESIGNATION_CHANGE, (data) => {
     console.log(`Event ${ElevatorEventsEnum.DESIGNATION_CHANGE} emitted`, data);
     designation.value = data
   });
 
-  elevator.value.on(ElevatorEventsEnum.CURRENT_FLOOR, (data) => {
+  elevator.on(ElevatorEventsEnum.CURRENT_FLOOR, (data) => {
     console.log(`Event ${ElevatorEventsEnum.CURRENT_FLOOR} emitted`, data);
     currentFloor.value = data
     if (currentFloor.value !== stoppingAtFloor.value) {
@@ -71,32 +69,32 @@ const registerEvents = () => {
     }
   });
 
-  elevator.value.on(ElevatorEventsEnum.STOPPING_AT_FLOOR, (data) => {
+  elevator.on(ElevatorEventsEnum.STOPPING_AT_FLOOR, (data) => {
     console.log(`Event ${ElevatorEventsEnum.STOPPING_AT_FLOOR} emitted`, data);
     stoppingAtFloor.value = data
 
   });
 
-  elevator.value.on(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, (data: Array<number>) => {
+  elevator.on(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, (data: Array<number>) => {
     selectedFloors.value = [...data]
     // console.log(`Event ${ElevatorEventsEnum.SELECTED_FLOORS_CHANGED} emitted`, data);
 
 
   })
-  elevator.value.on(ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, (data: Array<number>) => {
+  elevator.on(ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, (data: Array<number>) => {
     floorsOrderedDown.value = [...data]
     // console.log(`Event ${ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED} emitted`, data);
 
 
   })
-  elevator.value.on(ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, (data: Array<number>) => {
+  elevator.on(ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, (data: Array<number>) => {
     floorsOrderedUp.value = [...data]
     // console.log(`Event ${ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED} emitted`, data);
 
 
   })
 
-  elevator.value.on(ElevatorEventsEnum.DOOR_STATE_PERCENTAGE, (data: number) => {
+  elevator.on(ElevatorEventsEnum.DOOR_STATE_PERCENTAGE, (data: number) => {
     elevatorDoorPercentage.value = data
     // console.log(`Event ${ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED} emitted`, data);
 
@@ -105,47 +103,38 @@ const registerEvents = () => {
 
 }
 
-// onUpdated(()=>{
-//   console.log('updated')
-// })
+registerEvents()
 
-onMounted(() => {
-  console.log(`the component is now mounted.`);
-  elevator.value = new Elevator(markRaw(elevatorConfig));
-
-  registerEvents()
-
-
-
-});
 
 onUnmounted(() => {//
   console.log(`Component is being unmounted, cleaning up event listeners.`);
-  // elevator.value.cleanup();
-  elevator.value.destroy()
+  // elevator.cleanup();
+  elevator.destroy()
 })
 
 const onOpenDoor = () => {
   // console.log('onOpenDoor')
-  elevator.value.openDoor()
+  elevator.openDoor()
 }
 
 const onCloseDoor = () => {
   // console.log('onCloseDoor')
-  elevator.value.closeDoor()
+  elevator.closeDoor()//
 }
 
 const onChooseFloor = (floor: number) => {
 
-  elevator.value.chooseFloor(floor)
+  elevator.chooseFloor(floor)
 }
 
 const onOrderUp = (floor: number) => {
-  elevator.value.orderUp(floor)
+  // elevator.orderUp(floor)
+  dispatcher.orderUp(floor)
 }
 
 const onOrderDown = (floor: number) => {
-  elevator.value.orderDown(floor)
+  // elevator.orderDown(floor)
+  dispatcher.orderDown(floor)
 }
 
 const getFloorStyle = (floor: number, percentage: number) => {
@@ -188,7 +177,7 @@ const getFloorStyle = (floor: number, percentage: number) => {
             </button>
           </div>
         </div>
-        <div class="building__base"></div>
+        <!-- <div class="building__base"></div> -->
       </div>
 
       <div id="elevator">

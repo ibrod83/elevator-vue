@@ -1,11 +1,10 @@
+import { DesignatedDirectionEnum } from "..";
 
 export function delay(mil: number) {
   return new Promise((res) => {
     setTimeout(res, mil)
   })
 }
-
-
 
 export type Deferred<T> = {
   promise: Promise<T>;
@@ -25,8 +24,6 @@ export function createDeferred<T>(): Deferred<T> {
   return { promise, resolve: resolve!, reject: reject! };
 }
 
-
-
 export function getRandomWholeNumber(min: number, max: number) {
   // Ensure that the min and max are whole numbers
   min = Math.ceil(min);
@@ -35,8 +32,6 @@ export function getRandomWholeNumber(min: number, max: number) {
   // Generate a random number in the range [min, max]
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
-
 
 export function hasLowerOrHigherNumber(
   currentFloor: number, 
@@ -76,4 +71,40 @@ export function hasLower(
 
 
 
+export function getTotalDistanceToDestination(
+  currentFloor: number,
+  designatedDirection: DesignatedDirectionEnum,
+  floorsOrderedDown: number[],
+  floorsOrderedUp: number[],
+  selectedFloors: number[],
+  returnFloor: number
+): number {
+  if (designatedDirection === DesignatedDirectionEnum.IDLE) {
+      return Math.abs(currentFloor - returnFloor);
+  }
+
+  let maxUpFloor = Math.max(...floorsOrderedUp, ...selectedFloors.filter(f => f > currentFloor));
+  let minDownFloor = Math.min(...floorsOrderedDown, ...selectedFloors.filter(f => f < currentFloor));
+
+  // Handle cases where no upper or lower bounds are found
+  maxUpFloor = isFinite(maxUpFloor) ? maxUpFloor : currentFloor;
+  minDownFloor = isFinite(minDownFloor) ? minDownFloor : currentFloor;
+
+  if (designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP) {
+      // Calculate total floors to the topmost floor and back to the return floor
+      const upDistance = maxUpFloor - currentFloor;
+      const downDistance = maxUpFloor - returnFloor;
+      return upDistance + Math.abs(downDistance);
+  } else {
+      // Calculate total floors to the lowest floor and back to the return floor
+      const downDistance = currentFloor - minDownFloor;
+      const upDistance = returnFloor - minDownFloor;
+      return downDistance + Math.abs(upDistance);
+  }
+}
+
+
+
+//if idle return empty array
+//
 

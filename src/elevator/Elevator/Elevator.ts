@@ -6,25 +6,27 @@ import { delay, hasLowerOrHigherNumber, hasHigher, hasLower, getTotalDistanceToD
 
 export class Elevator extends EventEmitter {
 
-    private designatedDirection: DesignatedDirectionEnum;// the designated direction(up,down,idle), according to the state of the floorHashmap
-    private state!: StateEnum// The technical state of the elevator
+  
     private doorTimerDelay: number
     private travelDelay: number
     private doorTimer: NodeJS.Timeout | null = null
-    private isDestroyed: boolean = false   
-    private floorRange: number[] = []
+    private isDestroyed: boolean = false    
     private door!: Door
-    private id:number
-    private currentFloor = 0
+       
     private floorsOrderedDown: number[] = []
     private floorsOrderedUp: number[] = []
     private selectedFloors: number[] = []
-
+    public state!: StateEnum// The technical state of the elevator
+    public currentFloor = 0
+    public designatedDirection: DesignatedDirectionEnum;// the designated direction(up,down,idle), according to the state of the floorHashmap
+    public floorRange: number[] = []
+    public id:number 
     constructor(config: ElevatorConfig) {
         super()
         const { floorRange,id, travelDelay = 1000, doorTimerDelay = 1000, completeDoorCycleTime = 1000,doorSteps=100 } = config
         this.door = new Door({completeDoorCycleTime,doorSteps})
         this.id= id;
+        
         this.registerDoorEvents()
         this.doorTimerDelay = doorTimerDelay
         this.floorRange = floorRange
@@ -163,21 +165,7 @@ export class Elevator extends EventEmitter {
         this.emit(ElevatorEventsEnum.STATE_CHANGE, state)
     }
 
-    private handleExternalOrder = (floor: number, requestDirection: DirectionsEnum) => {
-        if (floor === this.currentFloor) {
-            if ([StateEnum.DOOR_OPENING, StateEnum.DOOR_CLOSING, StateEnum.DOOR_OPEN, StateEnum.DOOR_CLOSED].includes(this.state)) {
-                return;
-            }
-        }
-        const arrayToUpdate = requestDirection === DirectionsEnum.DOWN ? this.floorsOrderedDown : this.floorsOrderedUp
-        arrayToUpdate.push(floor)
-
-        this.emit(requestDirection === DirectionsEnum.DOWN ? ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED : ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, arrayToUpdate)
-        this.designationCheck(floor)
-        this.triggerCheck()
-
-    }
-
+   
     private clearDoorTimer() {
         if (!this.doorTimer) {
             return;
@@ -213,6 +201,33 @@ export class Elevator extends EventEmitter {
     getDistanceToDestinationFloor(floor:number) {
         return getTotalDistanceToDestination(this.currentFloor,this.designatedDirection,this.floorsOrderedDown,this.floorsOrderedUp,this.selectedFloors,floor)
     }
+
+
+    /**
+     * Being that the elevator is 100% indepedent, it needs to return a boolean to the client(the Dispatcher), 
+     * notfying whether the order was accepted
+     */
+    private handleExternalOrder = (floor: number, requestDirection: DirectionsEnum):boolean => {
+        if (floor === this.currentFloor) {
+            if(this.state === StateEnum.DOOR_CLOSED){
+                this._openDoor()
+                return false;
+            }
+            if(this.state === StateEnum.DOOR_OPENING || this.state === StateEnum.DOOR_CLOSING || this.state === StateEnum.DOOR_OPEN){
+                return false;
+            }
+            
+        }
+        const arrayToUpdate = requestDirection === DirectionsEnum.DOWN ? this.floorsOrderedDown : this.floorsOrderedUp
+        arrayToUpdate.push(floor)
+
+        this.emit(requestDirection === DirectionsEnum.DOWN ? ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED : ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, arrayToUpdate)
+        this.designationCheck(floor)
+        this.triggerCheck()
+        return true
+
+    }    
+
  
     chooseFloor = (floor: number) => {
         if (floor === this.currentFloor) {
@@ -234,11 +249,11 @@ export class Elevator extends EventEmitter {
     }
 
     orderUp(floor: number) {
-        this.handleExternalOrder(floor, DirectionsEnum.UP)
+        return this.handleExternalOrder(floor, DirectionsEnum.UP)
     }
 
     orderDown(floor: number) {
-        this.handleExternalOrder(floor, DirectionsEnum.DOWN)
+        return this.handleExternalOrder(floor, DirectionsEnum.DOWN)
     }   
    
 

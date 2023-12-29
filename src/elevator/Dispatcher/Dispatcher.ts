@@ -1,45 +1,127 @@
 import { EventEmitter } from '../EventEmitter';
 import { Elevator } from '../Elevator/Elevator';
+import { DesignatedDirectionEnum, ElevatorEventsEnum } from '..';
+import { DispatcherEventsEnum } from './types';
+
 
 export class Dispatcher extends EventEmitter {
     elevators: Elevator[] = []
-
+    private floorsOrderedUpByElevatorId:{[index:number]:number[]} = {}
+    private floorsOrderedDownByElevatorId:{[index:number]:number[]} = {}
     constructor(elevators: Elevator[]) {
         super();
         this.elevators = elevators
+        for(let elevator of this.elevators){
+            this.floorsOrderedUpByElevatorId[elevator.id] = []
+            this.floorsOrderedDownByElevatorId[elevator.id] = []
+        }
+        this.registerElevatorEvents()
+        
+
     }
 
-    private getBestElevator(floor: number) {
-        const values = this.elevators.map(e => e.getDistanceToDestinationFloor(floor));
-        const minValue = Math.min(...values);
+    private registerElevatorEvents() {
+        for (let elevator of this.elevators) {
+            elevator.on(ElevatorEventsEnum.STOPPING_AT_FLOOR, (floor: number) => {
+                this.floorsOrderedDownByElevatorId[elevator.id] = this.floorsOrderedDownByElevatorId[elevator.id].filter(f=>f!==floor)
+                this.floorsOrderedUpByElevatorId[elevator.id] = this.floorsOrderedUpByElevatorId[elevator.id].filter(f=>f!==floor)
+                this.emit(DispatcherEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, this.getFloorsOrderedInDirection('DOWN'))
+                this.emit(DispatcherEventsEnum.FLOORS_ORDERED_UP_CHANGED, this.getFloorsOrderedInDirection('UP'))
+            })
 
-        // Step 2: Find the index of the object with the minimum value
-        const minIndex = values.indexOf(minValue);
-
-        // Step 3: Filter out the object at the minIndex
-        // const bestElevator = this.elevators.filter((_, index) => index !== minIndex)[0];
-        const bestElevator = this.elevators[minIndex]
-        return bestElevator
+        }
     }
+
+    private getFloorsOrderedInDirection(direction:'UP'|'DOWN'){
+        const floorsOrdered = []
+        const relevantObject = direction === 'UP' ? this.floorsOrderedUpByElevatorId : this.floorsOrderedDownByElevatorId
+        for(let elevatorId in  relevantObject){
+            floorsOrdered.push(...relevantObject[elevatorId])
+        }
+        return floorsOrdered;
+    }
+
+
+    private getBestElevator(floor: number, desiredDirection: 'UP' | 'DOWN') {
+
+
+        const numFloors = this.elevators[0].floorRange[1] - this.elevators[0].floorRange[0] + 1
+        const maxDistance = numFloors * 2 - 1
+
+        const correspondingDesignation = desiredDirection === 'UP' ? DesignatedDirectionEnum.DESIGNATED_UP : DesignatedDirectionEnum.DESIGNATED_DOWN
+        const oppositeDesignation = desiredDirection === 'UP' ? DesignatedDirectionEnum.DESIGNATED_DOWN : DesignatedDirectionEnum.DESIGNATED_UP
+
+        const elevatorGrades = []
+
+        for (let elevator of this.elevators) {
+                       
+            const distance = elevator.getDistanceToDestinationFloor(floor)
+            const normalizedDistance = distance / maxDistance
+            const invertedNormazlizedDistance = 1 - normalizedDistance
+            let designationGrade;
+            if (correspondingDesignation === elevator.designatedDirection) {
+                designationGrade = 1.0
+            } else if (oppositeDesignation === elevator.designatedDirection){
+                designationGrade = 0.5
+            }else{
+                designationGrade = 0.8
+            }
+
+            const finalGrade = invertedNormazlizedDistance*designationGrade
+            elevatorGrades.push(finalGrade) 
+         }
+
+        const  maxGrade = [...elevatorGrades].sort((a,b)=>b-a)[0]
+        const elevatorIndex = elevatorGrades.indexOf(maxGrade)
+        return this.elevators[elevatorIndex]
+
+    }
+    
+
 
     orderUp(floor: number) {
-        // this.elevators[0].orderUp(floor)
-        this.getBestElevator(floor).orderUp(floor)
+
+        // if(this.floorsOrderedUp.includes(floor)){
+        //     return;
+        // }
+        for(let elevatorId in  this.floorsOrderedUpByElevatorId){
+             if(this.floorsOrderedUpByElevatorId[elevatorId].includes(floor)){
+                return;
+             }
+        }
+
+        const selectedElevator = this.getBestElevator(floor, 'UP')
+        const wasOrderAccepted = selectedElevator.orderUp(floor)
+        if (!wasOrderAccepted) {
+            console.log('not accepted!')
+            return;
+        }
+
+        this.floorsOrderedUpByElevatorId[selectedElevator.id].push(floor)
+
+        // this.floorsOrderedUp.push(floor)
+        // this.once(ElevatorEventsEnum.STOPPING_AT_FLOOR,())
+        const floorsOrderedUp = this.getFloorsOrderedInDirection('UP')
+        this.emit(DispatcherEventsEnum.FLOORS_ORDERED_UP_CHANGED, floorsOrderedUp)
     }
 
     orderDown(floor: number) {
-        this.getBestElevator(floor).orderDown(floor)
+
+        for(let elevatorId in  this.floorsOrderedDownByElevatorId){
+            if(this.floorsOrderedDownByElevatorId[elevatorId].includes(floor)){
+               return;
+            }
+       }
+
+        const selectedElevator = this.getBestElevator(floor, 'DOWN')
+        const wasOrderAccepted = selectedElevator.orderDown(floor)
+        if (!wasOrderAccepted) {
+            console.log('not accepted!')
+            return;
+        }
+        this.floorsOrderedDownByElevatorId[selectedElevator.id].push(floor)
+        const floorsOrderedDown = this.getFloorsOrderedInDirection('DOWN')
+        // this.floorsOrderedDown.push(floor)
+        this.emit(DispatcherEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, floorsOrderedDown)
     }
 }
-
-//Factors:
-//the ordering floor
-//ordering direction
-//distance of each elevator from ordering floor
-//current designation of each elevator
-//current final destination of each elevator
-
-//abstract description:
-//for every elevator, deduce how "quickly" it is designated to go through the ordering floor(in the correct direction), under the current conditions.
-//this is true both for idle and non idle elevators.
-//traveling through a floor will have a weight of 1, whereas stopping in a floor will have a weight of 2. data will be normalized.

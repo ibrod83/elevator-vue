@@ -13,6 +13,7 @@ const elevatorConfig: Omit<ElevatorConfig,'id'> = { floorRange: [-1, 9], travelD
 const elevator1 = new Elevator({...elevatorConfig,id:1});
 const elevator2 = new Elevator({...elevatorConfig,id:2});
 const dispatcher = new Dispatcher([elevator1, elevator2])
+// const dispatcher = new Dispatcher([elevator1])
 
 const floorRange = ref(elevatorConfig.floorRange)
 
@@ -79,7 +80,7 @@ const registerElevatorEvents = (elevator: Elevator, id:number) => {
 
   elevator.on(ElevatorEventsEnum.DESIGNATION_CHANGE, (data) => {
     console.log(`Event ${ElevatorEventsEnum.DESIGNATION_CHANGE} emitted`, data);
-    state[id].designation = data
+    state[id] = {...state[id],designation:data}
   });
 
   elevator.on(ElevatorEventsEnum.CURRENT_FLOOR, (data) => {
@@ -218,15 +219,15 @@ const getShaftStyle = (floor: number, percentage: number, elevatorId: number) =>
               :class="{ 'building__floorButton--selected': floorsOrderedDown.includes(floor) }">&#9660;
             </button>
           </div>
-          <div class="building__shaft" :style="getShaftStyle(floor, elevatorStates[2].elevatorDoorPercentage,2)">
+           <div class="building__shaft" :style="getShaftStyle(floor, elevatorStates[2].elevatorDoorPercentage,2)">
             <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP && elevator2.currentFloor === floor" class="building__indicator">&uarr;</div>
             <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN && elevator2.currentFloor === floor" class="building__indicator">&darr;</div>
-          </div>
+          </div> 
         </div>
 
       </div>
 
-      <div id="elevator2">
+       <div id="elevator2">
         <div class="elevator__floorButtons">
           <button @click="onChooseFloor(floor,elevator2)" v-for="floor in floorNumbers" :key="floor" class="elevator__floorButton"
             :class="{
@@ -240,10 +241,9 @@ const getShaftStyle = (floor: number, percentage: number, elevatorId: number) =>
             &#9664;&#9654;
           </button>
         </div>
-      </div>
+      </div> 
     </section>
 
   </div>
 </template>
-
 

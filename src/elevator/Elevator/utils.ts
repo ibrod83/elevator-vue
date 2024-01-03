@@ -103,6 +103,10 @@ export function getTotalDistanceToDestination(
   }
 }
 
+export function isFloorOnTheWay(floor:number,currentDirection:DesignatedDirectionEnum,floorRange:number[]){
+
+}
+
 
 
 //if idle return empty array

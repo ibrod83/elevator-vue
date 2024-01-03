@@ -2,17 +2,15 @@ import { Door } from "../Door/Door";
 import { DoorEventsEnum } from "../Door/types";
 import { EventEmitter } from "../EventEmitter"
 import { ElevatorEventsEnum, StateEnum, DesignatedDirectionEnum, type ElevatorConfig, RequestTypeEnum, DirectionsEnum } from "./types"
-import { delay, hasLowerOrHigherNumber, hasHigher, hasLower, getTotalDistanceToDestination } from "./utils"
+import { delay, hasHigher, hasLower, getTotalDistanceToDestination } from "./utils"
 
 export class Elevator extends EventEmitter {
 
-  
     private doorTimerDelay: number
     private travelDelay: number
     private doorTimer: NodeJS.Timeout | null = null
-    private isDestroyed: boolean = false    
+    private isDestroyed: boolean = false
     private door!: Door
-       
     private floorsOrderedDown: number[] = []
     private floorsOrderedUp: number[] = []
     private selectedFloors: number[] = []
@@ -20,13 +18,12 @@ export class Elevator extends EventEmitter {
     public currentFloor = 0
     public designatedDirection: DesignatedDirectionEnum;// the designated direction(up,down,idle), according to the state of the floorHashmap
     public floorRange: number[] = []
-    public id:number 
+    public id: number
     constructor(config: ElevatorConfig) {
         super()
-        const { floorRange,id, travelDelay = 1000, doorTimerDelay = 1000, completeDoorCycleTime = 1000,doorSteps=100 } = config
-        this.door = new Door({completeDoorCycleTime,doorSteps})
-        this.id= id;
-        
+        const { floorRange, id, travelDelay = 1000, doorTimerDelay = 1000, completeDoorCycleTime = 1000, doorSteps = 100 } = config
+        this.door = new Door({ completeDoorCycleTime, doorSteps })
+        this.id = id;
         this.registerDoorEvents()
         this.doorTimerDelay = doorTimerDelay
         this.floorRange = floorRange
@@ -35,10 +32,12 @@ export class Elevator extends EventEmitter {
         this.state = StateEnum.DOOR_CLOSED
     }
 
+
     private registerDoorEvents() {
         this.door.on(DoorEventsEnum.DOOR_CLOSED, () => {
             this.emit(ElevatorEventsEnum.DOOR_CLOSED)
             this.setState(StateEnum.DOOR_CLOSED)
+            this.switchDirectionIfNeeded()
             this.triggerCheck()
         })
 
@@ -49,12 +48,8 @@ export class Elevator extends EventEmitter {
         })
 
         this.door.on(DoorEventsEnum.DOOR_STATE_PERCENTAGE, (percentage) => {//            
-            this.emit(ElevatorEventsEnum.DOOR_STATE_PERCENTAGE,percentage)            
+            this.emit(ElevatorEventsEnum.DOOR_STATE_PERCENTAGE, percentage)
         })
-    }
-
-    private hasLowerOrHigherFloor(higher: boolean) {
-        return hasLowerOrHigherNumber(this.currentFloor, higher, this.floorsOrderedDown, this.floorsOrderedUp, this.selectedFloors)
     }
 
     private hasHigher() {
@@ -65,20 +60,39 @@ export class Elevator extends EventEmitter {
         return hasLower(this.currentFloor, this.floorsOrderedDown, this.floorsOrderedUp, this.selectedFloors)
     }
 
-    private handleDesignatedDirection() {
-        if (this.hasLowerOrHigherFloor(true)) {
+    private switchDirectionIfNeeded() {
+
+        const hasHigher = this.hasHigher()
+        const hasLower = this.hasLower()
+
+        if (this.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP && hasHigher ||
+            this.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN && hasLower) {
+            return;
+        }
+
+        if (hasHigher) {//
             this.setDesignatedDirection(DesignatedDirectionEnum.DESIGNATED_UP);
-        } else if (this.hasLowerOrHigherFloor(false)) {
+        } else if (hasLower) {
             this.setDesignatedDirection(DesignatedDirectionEnum.DESIGNATED_DOWN);
         } else {
+
             this.setDesignatedDirection(DesignatedDirectionEnum.IDLE);
         }
+
+
     }
 
     private async runElevatorInDirection(direction: DirectionsEnum) {
+
         const isMovingUp = direction === DirectionsEnum.UP;
 
-        while ((isMovingUp ? this.hasHigher() : this.hasLower()) && !this.isDestroyed) {
+        let isFloorSpecificallySelected = false
+        let isFloorOrderedForCurrentDirection = false
+        let isFloorOrderedToOppositeDirection = false
+        let isFloorOrderedUp = false
+        let isFloorOrderedDown = false
+
+        while (!this.isDestroyed) {
             this.setState(StateEnum.MOVING)
             const nextFloor = this.currentFloor + (isMovingUp ? 1 : -1);
             await delay(this.travelDelay);
@@ -86,62 +100,101 @@ export class Elevator extends EventEmitter {
             this.currentFloor = nextFloor;
             this.emit(ElevatorEventsEnum.CURRENT_FLOOR, nextFloor);
 
-            const isFloorSpecificallySelected = this.selectedFloors.includes(this.currentFloor)
-            const isFloorOrderedUp = this.floorsOrderedUp.includes(this.currentFloor)
-            const isFloorOrderedDown = this.floorsOrderedDown.includes(this.currentFloor)
-            const isFloorFlagged = isFloorOrderedDown || isFloorOrderedUp || isFloorSpecificallySelected
-            const isFloorOrderedForCurrentDirection = direction === DirectionsEnum.UP ? isFloorOrderedUp : isFloorOrderedDown
+            isFloorOrderedUp = this.floorsOrderedUp.includes(this.currentFloor)
+            isFloorOrderedDown = this.floorsOrderedDown.includes(this.currentFloor)
+            isFloorSpecificallySelected = this.selectedFloors.includes(this.currentFloor)
+            isFloorOrderedForCurrentDirection = direction === DirectionsEnum.UP ? isFloorOrderedUp : isFloorOrderedDown
+            isFloorOrderedToOppositeDirection = direction === DirectionsEnum.UP ? isFloorOrderedDown : isFloorOrderedUp
 
-            let shouldStop = false
-            const hasMoreFloorsInRelevantDirection = isMovingUp ? this.hasHigher() : this.hasLower()
-            if (isFloorFlagged) {
-                const hasMoreFloorsInRelevantDirection = isMovingUp ? this.hasHigher() : this.hasLower()
-                if (!hasMoreFloorsInRelevantDirection || isFloorOrderedForCurrentDirection || isFloorSpecificallySelected) {
-                    shouldStop = true;
-                }
+            const isFloorFlagged = isFloorOrderedDown || isFloorOrderedUp || isFloorSpecificallySelected
+            const hasHigher = this.hasHigher()
+            const hasLower = this.hasLower()
+            const hasMoreInRelevantDirection = isMovingUp ? hasHigher : hasLower
+            const stop = ()=>this.handleStopAtFloor(this.currentFloor, isFloorOrderedForCurrentDirection, isFloorOrderedToOppositeDirection, isFloorOrderedUp, hasHigher, hasLower); 
+
+            if (isFloorFlagged && (isFloorOrderedForCurrentDirection || isFloorSpecificallySelected)) {
+                return stop()
             }
-            if (shouldStop) {
-                if (!hasMoreFloorsInRelevantDirection) {
-                    this.handleDesignatedDirection()
-                }
-                this.handleStopAtFloor(this.currentFloor);
-                break;
+            if (!hasMoreInRelevantDirection) {
+                return stop()
             }
+            // Else, continue..
         }
     }
 
-    private async handleStopAtFloor(floor: number) {
+    private async handleStopAtFloor(floor: number,
+        isFloorOrderedForCurrentDirection: boolean,
+        isFloorOrderedToOppositeDirection: boolean,
+        isFloorOrderedUp: boolean,
+        hasHigher: boolean,
+        hasLower: boolean
+    ) {
 
         const filterFunc = (f: number) => f !== floor
-        this.selectedFloors = this.selectedFloors.filter(filterFunc)
-        this.floorsOrderedDown = this.floorsOrderedDown.filter(filterFunc)
-        this.floorsOrderedUp = this.floorsOrderedUp.filter(filterFunc)
 
+        const filterCorrectOrdersArray = ((isFloorOrderedUp: boolean) => {            
+            if (isFloorOrderedUp) {
+                this.floorsOrderedUp = this.floorsOrderedUp.filter(filterFunc)
+            } else {
+                this.floorsOrderedDown = this.floorsOrderedDown.filter(filterFunc)
+            }
+        })
+
+        // Always clear selected floors from within the elevator
+        this.selectedFloors = this.selectedFloors.filter(filterFunc)
+
+        this._openDoor()
+
+        if (isFloorOrderedForCurrentDirection) {
+
+            // Both directions
+            if (isFloorOrderedToOppositeDirection) {
+                //Clear both orders for simplicity
+                this.floorsOrderedUp = this.floorsOrderedUp.filter(filterFunc)
+                this.floorsOrderedDown = this.floorsOrderedDown.filter(filterFunc)
+                //Continue at the same direction
+                if (!hasHigher && !hasLower) {
+                    this.setDesignatedDirection(DesignatedDirectionEnum.IDLE)
+                }
+            }
+            // Only current direction
+            if (!isFloorOrderedToOppositeDirection) {
+                filterCorrectOrdersArray(isFloorOrderedUp)
+
+            }
+        } else {
+
+            // Only opposite direction
+            if (isFloorOrderedToOppositeDirection) {
+                const oppositeDirection = this.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP ? DesignatedDirectionEnum.DESIGNATED_DOWN :
+                    DesignatedDirectionEnum.DESIGNATED_UP
+                filterCorrectOrdersArray(isFloorOrderedUp)
+                this.setDesignatedDirection(oppositeDirection)
+            } else {
+                this.switchDirectionIfNeeded()
+            }
+        }
+
+        this.emitStopAtFloorEvents()
+        // this.switchDirectionIfNeeded()
+
+    }
+
+
+    private emitStopAtFloorEvents() {
         this.emit(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, this.selectedFloors)
         this.emit(ElevatorEventsEnum.CURRENT_FLOOR, this.currentFloor)
         this.emit(ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, this.floorsOrderedDown)
         this.emit(ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, this.floorsOrderedUp)
         this.emit(ElevatorEventsEnum.STOPPING_AT_FLOOR, this.currentFloor)
-        this._openDoor()
     }
 
-    private designationCheck(floor: number) {
-        if (this.designatedDirection !== DesignatedDirectionEnum.IDLE) {
-            return;
-        }
-        if (floor > this.currentFloor) {
-
-            this.setDesignatedDirection(DesignatedDirectionEnum.DESIGNATED_UP)
-        } else {
-            this.setDesignatedDirection(DesignatedDirectionEnum.DESIGNATED_DOWN)
-        }
-    }
 
     private triggerCheck() {
         if (this.state === StateEnum.DOOR_CLOSED) {
-            if (this.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP && this.hasHigher()) {
+            if (this.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP) {
                 this.runElevatorInDirection(DirectionsEnum.UP);
-            } else if (this.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN && this.hasLower()) {
+            } else if (this.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN) {
                 this.runElevatorInDirection(DirectionsEnum.DOWN);
             } else {
                 //IDLE designatedDirection, do nothing
@@ -165,7 +218,7 @@ export class Elevator extends EventEmitter {
         this.emit(ElevatorEventsEnum.STATE_CHANGE, state)
     }
 
-   
+
     private clearDoorTimer() {
         if (!this.doorTimer) {
             return;
@@ -173,13 +226,9 @@ export class Elevator extends EventEmitter {
         clearTimeout(this.doorTimer)
     }
 
-     //imperative actions used by the class
-     private async _openDoor() {
+    private async _openDoor() {
         this.clearDoorTimer()
-        // this.resetDoorTimer();
         if (this.state === StateEnum.DOOR_CLOSING) {
-            // this.closeDoorCancelationPromise.resolve('CANCEL')
-            
             this.emit(ElevatorEventsEnum.DOOR_CLOSING_CANCELED)
         }
 
@@ -188,7 +237,7 @@ export class Elevator extends EventEmitter {
         this.emit(ElevatorEventsEnum.DOOR_OPENING)
         this.setState(StateEnum.DOOR_OPENING)
 
-       
+
     }
 
     private _closeDoor = async () => {
@@ -198,37 +247,37 @@ export class Elevator extends EventEmitter {
         this.door.close()
     }
 
-    getDistanceToDestinationFloor(floor:number) {
-        return getTotalDistanceToDestination(this.currentFloor,this.designatedDirection,this.floorsOrderedDown,this.floorsOrderedUp,this.selectedFloors,floor)
-    }
+
 
 
     /**
      * Being that the elevator is 100% indepedent, it needs to return a boolean to the client(the Dispatcher), 
      * notfying whether the order was accepted
      */
-    private handleExternalOrder = (floor: number, requestDirection: DirectionsEnum):boolean => {
+    private handleExternalOrder = (floor: number, requestDirection: DirectionsEnum): boolean => {
         if (floor === this.currentFloor) {
-            if(this.state === StateEnum.DOOR_CLOSED){
+            if (this.state === StateEnum.DOOR_CLOSED) {//
                 this._openDoor()
                 return false;
             }
-            if(this.state === StateEnum.DOOR_OPENING || this.state === StateEnum.DOOR_CLOSING || this.state === StateEnum.DOOR_OPEN){
+            if (this.state === StateEnum.DOOR_OPENING || this.state === StateEnum.DOOR_CLOSING || this.state === StateEnum.DOOR_OPEN) {
                 return false;
             }
-            
+
         }
+
         const arrayToUpdate = requestDirection === DirectionsEnum.DOWN ? this.floorsOrderedDown : this.floorsOrderedUp
         arrayToUpdate.push(floor)
 
         this.emit(requestDirection === DirectionsEnum.DOWN ? ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED : ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, arrayToUpdate)
-        this.designationCheck(floor)
-        this.triggerCheck()
+        if (StateEnum.DOOR_CLOSED === this.state) {
+            this.switchDirectionIfNeeded()
+            this.triggerCheck()
+        }
         return true
 
-    }    
+    }
 
- 
     chooseFloor = (floor: number) => {
         if (floor === this.currentFloor) {
             if ([StateEnum.DOOR_OPENING, StateEnum.DOOR_CLOSING, StateEnum.DOOR_OPEN, StateEnum.DOOR_CLOSED].includes(this.state)) {
@@ -237,8 +286,19 @@ export class Elevator extends EventEmitter {
         }
         this.selectedFloors.push(floor)
         this.emit(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, this.selectedFloors)
-        this.designationCheck(floor)
-        this.triggerCheck()
+        if (StateEnum.DOOR_CLOSED === this.state) {
+            this.switchDirectionIfNeeded()
+            this.triggerCheck()
+        }
+
+    }
+
+    // isFloorOnTheWay(floor:number){
+
+    // }
+
+    getDistanceToDestinationFloor(floor: number) {
+        return getTotalDistanceToDestination(this.currentFloor, this.designatedDirection, this.floorsOrderedDown, this.floorsOrderedUp, this.selectedFloors, floor)
     }
 
     destroy() {
@@ -254,8 +314,8 @@ export class Elevator extends EventEmitter {
 
     orderDown(floor: number) {
         return this.handleExternalOrder(floor, DirectionsEnum.DOWN)
-    }   
-   
+    }
+
 
     openDoor() {
         const relevantStates = [StateEnum.DOOR_CLOSING, StateEnum.DOOR_CLOSED]
@@ -270,4 +330,6 @@ export class Elevator extends EventEmitter {
             this._closeDoor()
         }
     }
+
+
 }

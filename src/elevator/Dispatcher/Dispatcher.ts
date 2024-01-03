@@ -22,11 +22,23 @@ export class Dispatcher extends EventEmitter {
 
     private registerElevatorEvents() {
         for (let elevator of this.elevators) {
-            elevator.on(ElevatorEventsEnum.STOPPING_AT_FLOOR, (floor: number) => {
-                this.floorsOrderedDownByElevatorId[elevator.id] = this.floorsOrderedDownByElevatorId[elevator.id].filter(f=>f!==floor)
-                this.floorsOrderedUpByElevatorId[elevator.id] = this.floorsOrderedUpByElevatorId[elevator.id].filter(f=>f!==floor)
+            // elevator.on(ElevatorEventsEnum.STOPPING_AT_FLOOR, (floor: number) => {
+            //     this.floorsOrderedDownByElevatorId[elevator.id] = this.floorsOrderedDownByElevatorId[elevator.id].filter(f=>f!==floor)
+            //     this.floorsOrderedUpByElevatorId[elevator.id] = this.floorsOrderedUpByElevatorId[elevator.id].filter(f=>f!==floor)
+            //     this.emit(DispatcherEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, this.getFloorsOrderedInDirection('DOWN'))
+            //     this.emit(DispatcherEventsEnum.FLOORS_ORDERED_UP_CHANGED, this.getFloorsOrderedInDirection('UP'))
+            // })
+            elevator.on(ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, (floors: number[]) => {
+                this.floorsOrderedDownByElevatorId[elevator.id] = floors
+                // this.floorsOrderedUpByElevatorId[elevator.id] = this.floorsOrderedUpByElevatorId[elevator.id].filter(f=>f!==floor)
                 this.emit(DispatcherEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, this.getFloorsOrderedInDirection('DOWN'))
+                // this.emit(DispatcherEventsEnum.FLOORS_ORDERED_UP_CHANGED, this.getFloorsOrderedInDirection('UP'))
+            })
+            elevator.on(ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, (floors: number[]) => {
+                this.floorsOrderedUpByElevatorId[elevator.id] = floors
+                // this.floorsOrderedUpByElevatorId[elevator.id] = this.floorsOrderedUpByElevatorId[elevator.id].filter(f=>f!==floor)
                 this.emit(DispatcherEventsEnum.FLOORS_ORDERED_UP_CHANGED, this.getFloorsOrderedInDirection('UP'))
+                // this.emit(DispatcherEventsEnum.FLOORS_ORDERED_UP_CHANGED, this.getFloorsOrderedInDirection('UP'))
             })
 
         }
@@ -79,11 +91,12 @@ export class Dispatcher extends EventEmitter {
     
 
 
-    orderUp(floor: number) {
+    /**
+     * 
+     * Returns the selected Elevator object, or undefined if request rejected
+     */
+    orderUp(floor: number) :Elevator|undefined {
 
-        // if(this.floorsOrderedUp.includes(floor)){
-        //     return;
-        // }
         for(let elevatorId in  this.floorsOrderedUpByElevatorId){
              if(this.floorsOrderedUpByElevatorId[elevatorId].includes(floor)){
                 return;
@@ -99,13 +112,17 @@ export class Dispatcher extends EventEmitter {
 
         this.floorsOrderedUpByElevatorId[selectedElevator.id].push(floor)
 
-        // this.floorsOrderedUp.push(floor)
-        // this.once(ElevatorEventsEnum.STOPPING_AT_FLOOR,())
+
         const floorsOrderedUp = this.getFloorsOrderedInDirection('UP')
         this.emit(DispatcherEventsEnum.FLOORS_ORDERED_UP_CHANGED, floorsOrderedUp)
+        return selectedElevator;
     }
 
-    orderDown(floor: number) {
+    /**
+     * 
+     * Returns the selected Elevator object, or undefined if request rejected
+     */
+    orderDown(floor: number) :Elevator|undefined {
 
         for(let elevatorId in  this.floorsOrderedDownByElevatorId){
             if(this.floorsOrderedDownByElevatorId[elevatorId].includes(floor)){
@@ -121,7 +138,8 @@ export class Dispatcher extends EventEmitter {
         }
         this.floorsOrderedDownByElevatorId[selectedElevator.id].push(floor)
         const floorsOrderedDown = this.getFloorsOrderedInDirection('DOWN')
-        // this.floorsOrderedDown.push(floor)
+
         this.emit(DispatcherEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, floorsOrderedDown)
+        return selectedElevator;
     }
 }

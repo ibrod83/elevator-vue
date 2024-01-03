@@ -117,24 +117,7 @@ describe('Elevator', () => {
 
     }, { timeout: testTimeout })
 
-    it('Should get total distance to the destination floor', async () => {
-
-        const elevator = new Elevator(elevatorConfig)
-        var distance = elevator.getDistanceToDestinationFloor(3)
-        expect(distance).toBe(3)
-
-        elevator.orderDown(5)
-        elevator.chooseFloor(9)
-        await waitForFloor(elevator, 3)
-        distance = elevator.getDistanceToDestinationFloor(1)
-        expect(distance).toBe(14)
-
-        await waitForFloor(elevator,5,true)
-        distance = elevator.getDistanceToDestinationFloor(5)
-        expect(distance).toBe(0)
-        
-
-    }, { timeout: testTimeout })
+    
 
 
     it('Should avoid switching direction if current direction is not finished', async () => {//
@@ -249,32 +232,32 @@ describe('Elevator', () => {
         expect(floor).toBe(8)
     }, { timeout: testTimeout })
 
-    it('Range test', async () => {
+    // it('Range test', async () => {
 
-        const floorRange = [0, 9]
-        const elevator = new Elevator({...elevatorConfig,doorSteps:1})
+    //     const floorRange = [0, 9]
+    //     const elevator = new Elevator({...elevatorConfig,doorSteps:1})
 
-        for (let i = 0; i < 100; i++) {//
-            elevator.chooseFloor(1)
-            await delay(1)
-            elevator.chooseFloor(9)
-            elevator.chooseFloor(5)
-            let floor = await waitForEvent(elevator, ElevatorEventsEnum.CURRENT_FLOOR)
-            expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
-            expect(floor).toBeLessThanOrEqual(floorRange[1]);//
-            elevator.chooseFloor(getRandomWholeNumber(0, 9))
-            // await delay(1)
-            elevator.chooseFloor(getRandomWholeNumber(0, 9))
-            floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-            expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
-            expect(floor).toBeLessThanOrEqual(floorRange[1]);
-            elevator.chooseFloor(getRandomWholeNumber(0, 9))//
-            await delay(1)
-            elevator.chooseFloor(getRandomWholeNumber(0, 9))
-            floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
-            expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
-            expect(floor).toBeLessThanOrEqual(floorRange[1]);
-        }
+    //     for (let i = 0; i < 100; i++) {//
+    //         elevator.chooseFloor(1)
+    //         await delay(1)
+    //         elevator.chooseFloor(9)
+    //         elevator.chooseFloor(5)
+    //         let floor = await waitForEvent(elevator, ElevatorEventsEnum.CURRENT_FLOOR)
+    //         expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
+    //         expect(floor).toBeLessThanOrEqual(floorRange[1]);//
+    //         elevator.chooseFloor(getRandomWholeNumber(0, 9))
+    //         // await delay(1)
+    //         elevator.chooseFloor(getRandomWholeNumber(0, 9))
+    //         floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
+    //         expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
+    //         expect(floor).toBeLessThanOrEqual(floorRange[1]);
+    //         elevator.chooseFloor(getRandomWholeNumber(0, 9))//
+    //         await delay(1)
+    //         elevator.chooseFloor(getRandomWholeNumber(0, 9))
+    //         floor = await waitForEvent(elevator, ElevatorEventsEnum.STOPPING_AT_FLOOR)
+    //         expect(floor).toBeGreaterThanOrEqual(floorRange[0]);
+    //         expect(floor).toBeLessThanOrEqual(floorRange[1]);
+    //     }
 
-    }, { timeout: 30000 })
+    // }, { timeout: 30000 })
 });

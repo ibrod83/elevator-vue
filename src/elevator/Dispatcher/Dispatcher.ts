@@ -22,23 +22,13 @@ export class Dispatcher extends EventEmitter {
 
     private registerElevatorEvents() {
         for (let elevator of this.elevators) {
-            // elevator.on(ElevatorEventsEnum.STOPPING_AT_FLOOR, (floor: number) => {
-            //     this.floorsOrderedDownByElevatorId[elevator.id] = this.floorsOrderedDownByElevatorId[elevator.id].filter(f=>f!==floor)
-            //     this.floorsOrderedUpByElevatorId[elevator.id] = this.floorsOrderedUpByElevatorId[elevator.id].filter(f=>f!==floor)
-            //     this.emit(DispatcherEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, this.getFloorsOrderedInDirection('DOWN'))
-            //     this.emit(DispatcherEventsEnum.FLOORS_ORDERED_UP_CHANGED, this.getFloorsOrderedInDirection('UP'))
-            // })
             elevator.on(ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, (floors: number[]) => {
                 this.floorsOrderedDownByElevatorId[elevator.id] = floors
-                // this.floorsOrderedUpByElevatorId[elevator.id] = this.floorsOrderedUpByElevatorId[elevator.id].filter(f=>f!==floor)
                 this.emit(DispatcherEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, this.getFloorsOrderedInDirection('DOWN'))
-                // this.emit(DispatcherEventsEnum.FLOORS_ORDERED_UP_CHANGED, this.getFloorsOrderedInDirection('UP'))
             })
             elevator.on(ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, (floors: number[]) => {
                 this.floorsOrderedUpByElevatorId[elevator.id] = floors
-                // this.floorsOrderedUpByElevatorId[elevator.id] = this.floorsOrderedUpByElevatorId[elevator.id].filter(f=>f!==floor)
                 this.emit(DispatcherEventsEnum.FLOORS_ORDERED_UP_CHANGED, this.getFloorsOrderedInDirection('UP'))
-                // this.emit(DispatcherEventsEnum.FLOORS_ORDERED_UP_CHANGED, this.getFloorsOrderedInDirection('UP'))
             })
 
         }
@@ -60,9 +50,6 @@ export class Dispatcher extends EventEmitter {
         const numFloors = this.elevators[0].floorRange[1] - this.elevators[0].floorRange[0] + 1
         const maxDistance = numFloors * 2 - 1
 
-
-
-
         const elevatorGrades = []
         //PARAM 1:
         //floor is on the way of the elevator, and orderes to the same direction 1.0
@@ -74,7 +61,6 @@ export class Dispatcher extends EventEmitter {
 
         //PARAM 2:
         // normalized distance between the current floor and the ordering floor
-
 
         for (let elevator of this.elevators) {
             let directionCorrespondense: 'SAME' | 'OPPOSIE' | 'IDLE' = 'IDLE'
@@ -116,17 +102,7 @@ export class Dispatcher extends EventEmitter {
                 grade = 0.8
             }
 
-            // const distance = elevator.getDistanceToDestinationFloor(floor)
-            // const normalizedDistance = distance / maxDistance
-            // const invertedNormazlizedDistance = 1 - normalizedDistance
-            // let designationGrade;
-            // if (correspondingDesignation === elevator.designatedDirection) {
-            //     designationGrade = 1.0
-            // } else if (oppositeDesignation === elevator.designatedDirection){
-            //     designationGrade = 0.5
-            // }else{
-            //     designationGrade = 0.8
-            // }
+         
 
             const finalGrade = invertedNormazlizedDistance * grade
             elevatorGrades.push(finalGrade)

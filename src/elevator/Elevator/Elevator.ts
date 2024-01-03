@@ -2,7 +2,7 @@ import { Door } from "../Door/Door";
 import { DoorEventsEnum } from "../Door/types";
 import { EventEmitter } from "../EventEmitter"
 import { ElevatorEventsEnum, StateEnum, DesignatedDirectionEnum, type ElevatorConfig, RequestTypeEnum, DirectionsEnum } from "./types"
-import { delay, hasHigher, hasLower, getTotalDistanceToDestination } from "./utils"
+import { delay, hasHigher, hasLower } from "./utils"
 
 export class Elevator extends EventEmitter {
 
@@ -15,7 +15,7 @@ export class Elevator extends EventEmitter {
     private floorsOrderedUp: number[] = []
     private selectedFloors: number[] = []
     public state!: StateEnum// The technical state of the elevator
-    public currentFloor = 0
+    public currentFloor = 0//
     public designatedDirection: DesignatedDirectionEnum;// the designated direction(up,down,idle), according to the state of the floorHashmap
     public floorRange: number[] = []
     public id: number
@@ -70,7 +70,7 @@ export class Elevator extends EventEmitter {
             return;
         }
 
-        if (hasHigher) {//
+        if (hasHigher) {
             this.setDesignatedDirection(DesignatedDirectionEnum.DESIGNATED_UP);
         } else if (hasLower) {
             this.setDesignatedDirection(DesignatedDirectionEnum.DESIGNATED_DOWN);
@@ -78,8 +78,6 @@ export class Elevator extends EventEmitter {
 
             this.setDesignatedDirection(DesignatedDirectionEnum.IDLE);
         }
-
-
     }
 
     private async runElevatorInDirection(direction: DirectionsEnum) {
@@ -176,8 +174,6 @@ export class Elevator extends EventEmitter {
         }
 
         this.emitStopAtFloorEvents()
-        // this.switchDirectionIfNeeded()
-
     }
 
 
@@ -218,7 +214,6 @@ export class Elevator extends EventEmitter {
         this.emit(ElevatorEventsEnum.STATE_CHANGE, state)
     }
 
-
     private clearDoorTimer() {
         if (!this.doorTimer) {
             return;
@@ -236,8 +231,6 @@ export class Elevator extends EventEmitter {
 
         this.emit(ElevatorEventsEnum.DOOR_OPENING)
         this.setState(StateEnum.DOOR_OPENING)
-
-
     }
 
     private _closeDoor = async () => {
@@ -246,8 +239,6 @@ export class Elevator extends EventEmitter {
         this.setState(StateEnum.DOOR_CLOSING)
         this.door.close()
     }
-
-
 
 
     /**
@@ -263,9 +254,7 @@ export class Elevator extends EventEmitter {
             if (this.state === StateEnum.DOOR_OPENING || this.state === StateEnum.DOOR_CLOSING || this.state === StateEnum.DOOR_OPEN) {
                 return false;
             }
-
         }
-
         const arrayToUpdate = requestDirection === DirectionsEnum.DOWN ? this.floorsOrderedDown : this.floorsOrderedUp
         arrayToUpdate.push(floor)
 
@@ -291,15 +280,7 @@ export class Elevator extends EventEmitter {
             this.triggerCheck()
         }
 
-    }
-
-    // isFloorOnTheWay(floor:number){
-
-    // }
-
-    getDistanceToDestinationFloor(floor: number) {
-        return getTotalDistanceToDestination(this.currentFloor, this.designatedDirection, this.floorsOrderedDown, this.floorsOrderedUp, this.selectedFloors, floor)
-    }
+    }   
 
     destroy() {
         this.isDestroyed = true;
@@ -330,6 +311,4 @@ export class Elevator extends EventEmitter {
             this._closeDoor()
         }
     }
-
-
 }

@@ -13,7 +13,7 @@ export class Door extends EventEmitter {
         this.completeDoorCycleTime = completeDoorCycleTime;
     }
 
-    private clearDoorTimer() {
+    private clearDoorTimer() {//
         if (this.doorTimer !== null) {
             clearInterval(this.doorTimer);
             this.doorTimer = null;

@@ -63,11 +63,11 @@ export class Dispatcher extends EventEmitter {
         // normalized distance between the current floor and the ordering floor
 
         for (let elevator of this.elevators) {
-            let directionCorrespondense: 'SAME' | 'OPPOSIE' | 'IDLE' = 'IDLE'
+            let directionCorrespondense: 'SAME' | 'OPPOSITE' | 'IDLE' = 'IDLE'
             if ((desiredDirection === 'UP' && elevator.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP) || (desiredDirection === 'DOWN' && elevator.designatedDirection ===  DesignatedDirectionEnum.DESIGNATED_DOWN)) {
                 directionCorrespondense = 'SAME'
             } else if ((desiredDirection === 'UP'  && elevator.designatedDirection ===  DesignatedDirectionEnum.DESIGNATED_DOWN) || (desiredDirection === 'DOWN'  && elevator.designatedDirection ===  DesignatedDirectionEnum.DESIGNATED_UP)) {
-                directionCorrespondense = 'OPPOSIE'
+                directionCorrespondense = 'OPPOSITE'
             }
             const distance = Math.abs(elevator.currentFloor - floor)
             const normalizedDistance = distance / maxDistance
@@ -92,14 +92,14 @@ export class Dispatcher extends EventEmitter {
                 } else {
                     grade = 0.2
                 }
-            } else if (directionCorrespondense === 'OPPOSIE') {
+            } else if (directionCorrespondense === 'OPPOSITE') {
                 if (onTheWay) {
                     grade = 0.6
                 } else {
                     grade = 0.2
                 }
             } else {//idle
-                grade = 0.8
+                grade = 0.7
             }
 
          

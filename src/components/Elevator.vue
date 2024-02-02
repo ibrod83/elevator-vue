@@ -187,7 +187,7 @@ const getShaftStyle = (floor: number, percentage: number, elevatorId: number) =>
     </section> -->
     <section id="panels">
       
-      <div id="elevator1">
+      <div class="elevator">
         <div class="elevator__floorButtons">
           <button @click="onChooseFloor(floor,elevator1)" v-for="floor in floorNumbers" :key="floor" class="elevator__floorButton"
             :class="{
@@ -227,7 +227,7 @@ const getShaftStyle = (floor: number, percentage: number, elevatorId: number) =>
 
       </div>
 
-       <div id="elevator2">
+       <div class="elevator">
         <div class="elevator__floorButtons">
           <button @click="onChooseFloor(floor,elevator2)" v-for="floor in floorNumbers" :key="floor" class="elevator__floorButton"
             :class="{

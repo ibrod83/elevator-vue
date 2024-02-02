@@ -5,12 +5,22 @@
 
 
 .container {
-
-  padding: 2rem;
-
+ 
+  padding: 4rem 20rem;
+  @media (max-width: 1280px) {
+    padding: 2rem 2rem;
+  }
+  @media (max-width: 768px) {
+    padding: 1rem 0.3rem;
+  }
+  
+  // @media (max-width: 1024px) {
+  //   padding: 2rem 2rem;
+  // }
 }
 
 #panels {
+  border: 1px solid black;
   display: flex;
   justify-content: center;
   gap: 1rem;
@@ -24,15 +34,16 @@
 }
 
 .building {
+  
   position: relative;
   background-color: #f0f0f0;
   border: 2px solid #bcbcbc;
   // align-items:;
   display: flex;
   flex-direction: column;
-  width: 200px;
+  width: 33%;
 
-  &__floor {
+  .building__floor {
     display: flex;
     height: 3.5rem;
 
@@ -56,6 +67,7 @@
       }
 
       .building__floorButton {
+
         display: flex;
         text-align: center;
         justify-content: center;
@@ -65,10 +77,11 @@
         border-radius: 100%;
         margin: auto;
         /* background-color: lightgrey; */
-        
+
         border: 0px;
         background-color: transparent;
-        &:hover{
+
+        &:hover {
           cursor: pointer;
         }
       }
@@ -85,75 +98,48 @@
   }
 }
 
+.elevator {
+  max-width: 200px;
+  width: 33%;
 
+  .elevator__floorButtons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 2rem;
+    background-color: slategrey;
+    padding: 1rem;
+    @media (max-width: 1024px) {
+      grid-gap: 1rem;
+    }
+  }
 
+  .elevator__floorButton,
+  .elevator__action {
+    justify-self: center;
+    align-self: center;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+    width: 50px;
+    border-radius: 100%;
+    background-color: lightgrey;
 
+    @media (max-width: 768px) {
+      // Add your mobile-specific styles here
+      height: 35px; // Example: Adjust size for mobile
+      width: 35px; // Example: Adjust size for mobile
+      // Any other adjustments you'd like to make for mobile devices
+    }
+  }
 
-
-
-// .building__floorButton {
-//   display: flex;
-//   text-align: center;
-//   justify-content: center;
-//   align-items: center;
-//   height: 20px;
-//   width: 20px;
-//   border-radius: 100%;
-//   /* background-color: lightgrey; */
-
-//   border: 0px;
-//   background-color: transparent;
-
-// }
-
-// .building__floorButton--selected {
-//   background-color: yellow;
-// }
-
-// .building__floor--current {
-//   background-color: green;
-// }
-
-// .building__floor--stopped {
-//   background-color: red;
-// }
-
-
-
-/* .building__base {
-  width: 200px;
-  height: 20px;
-  background-color: #555555;
-  border: 2px solid #444444;
-  position: relative;
-  top: 1rem;
-  box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.1);
-} */
-
-
-.elevator__floorButtons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-gap: 2rem;
-  background-color: slategrey;
-  padding: 1rem;
+  .elevator__floorButton--selected {
+    background-color: yellow;
+  }
 }
 
-.elevator__floorButton,
-.elevator__action {
-  display: flex;
-  text-align: center;
-  justify-content: center;
-  align-items: center;
-  height: 50px;
-  width: 50px;
-  border-radius: 100%;
-  background-color: lightgrey;
-}
 
-.elevator__floorButton--selected {
-  background-color: yellow;
-}
 
 .indicator__elevatorState {
   color: navy

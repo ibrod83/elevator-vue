@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Elevator from './components/Elevator.vue'
+import Elevator from './components/Main.vue'
 </script>
 
 <template>

@@ -8,6 +8,7 @@ export class Elevator extends EventEmitter {
 
     private doorTimerDelay: number
     private travelDelay: number
+    private travelSteps:number
     private doorTimer: NodeJS.Timeout | null = null
     private isDestroyed: boolean = false
     private door!: Door
@@ -16,14 +17,16 @@ export class Elevator extends EventEmitter {
     private selectedFloors: number[] = []
     public state!: StateEnum// The technical state of the elevator
     public currentFloor = 0//
+    public physicalLocation = 0
     public designatedDirection: DesignatedDirectionEnum;// the designated direction(up,down,idle), according to the state of the floorHashmap
     public floorRange: number[] = []
     public id: number
     constructor(config: ElevatorConfig) {
         super()
-        const { floorRange, id, travelDelay = 1000, doorTimerDelay = 1000, completeDoorCycleTime = 1000, doorSteps = 100 } = config
+        const { floorRange, id, travelDelay = 1000, doorTimerDelay = 1000, completeDoorCycleTime = 1000, doorSteps = 100, travelSteps=100 } = config
         this.door = new Door({ completeDoorCycleTime, doorSteps })
         this.id = id;
+        this.travelSteps = travelSteps
         this.registerDoorEvents()
         this.doorTimerDelay = doorTimerDelay
         this.floorRange = floorRange
@@ -93,7 +96,8 @@ export class Elevator extends EventEmitter {
         while (!this.isDestroyed) {
             this.setState(StateEnum.MOVING)
             const nextFloor = this.currentFloor + (isMovingUp ? 1 : -1);
-            await delay(this.travelDelay);
+            // await delay(this.travelDelay);
+            await this.handleElevatorMovement(direction)
 
             this.currentFloor = nextFloor;
             this.emit(ElevatorEventsEnum.CURRENT_FLOOR, nextFloor);
@@ -119,6 +123,40 @@ export class Elevator extends EventEmitter {
             // Else, continue..
         }
     }
+
+    private async handleElevatorMovement(direction:DirectionsEnum){
+        // const movementSteps = 100
+        // let physicalLocation = this.currentFloor
+        const steps  = this.travelSteps
+        // console.log(process.env)
+        const delayFragment = this.travelDelay/steps     
+        for(let i=0;i<steps;i++){
+            // console.log(delayFragment)
+            await delay(Math.ceil(delayFragment))
+            // counter++
+            const currentFloor = direction === DirectionsEnum.UP ? this.currentFloor+1/steps : this.currentFloor-1/steps
+            this.currentFloor = currentFloor
+            this.emit(ElevatorEventsEnum.CURRENT_FLOOR, currentFloor);
+        }
+        // console.log(counter)
+    }
+
+    // private async handleElevatorMovement(direction:DirectionsEnum){
+    //     // const movementSteps = 100
+    //     let physicalLocation = this.currentFloor
+    //     const delayFragment = this.travelDelay/100
+    //     let counter = 0
+    //     const delayProm = delay(this.travelDelay)
+    //     for(let i=0;i<100;i++){
+    //         // console.log(delayFragment)
+    //         await delay(Math.ceil(delayFragment))
+    //         // counter++
+    //         physicalLocation = direction === DirectionsEnum.UP ? physicalLocation+0.1 : physicalLocation-0.1
+    //         this.physicalLocation = physicalLocation
+    //         this.emit(ElevatorEventsEnum.PHYSICAL_LOCATION, physicalLocation);
+    //     }
+    //     // console.log(counter)
+    // }
 
     private async handleStopAtFloor(floor: number,
         isFloorOrderedForCurrentDirection: boolean,

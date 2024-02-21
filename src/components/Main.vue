@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { Dispatcher } from '@/elevator/Dispatcher/Dispatcher';
+import { Dispatcher } from '@/logic/Dispatcher/Dispatcher';
 import './Elevator.scss'
-import { DesignatedDirectionEnum, Elevator, ElevatorEventsEnum, StateEnum } from '@/elevator';
-import type { ElevatorConfig } from '@/elevator/Elevator/types';
+import ElevatorPanel from './ElevatorPanel.vue';
+import { DesignatedDirectionEnum, Elevator, ElevatorEventsEnum, StateEnum } from '@/logic';
+import type { ElevatorConfig } from '@/logic/Elevator/types';
 
 import { onMounted, onUnmounted, computed, markRaw, reactive, type Ref, type Raw } from 'vue'
 
 import { ref } from 'vue'
 
-const elevatorConfig: Omit<ElevatorConfig,'id'> = { floorRange: [-1, 9], travelDelay: 1000, completeDoorCycleTime: 1000, doorTimerDelay: 1500 }
+const elevatorConfig: Omit<ElevatorConfig, 'id'> = { floorRange: [-1, 9], travelDelay: 700, completeDoorCycleTime: 1000, doorTimerDelay: 1500 }
 
-const elevator1 = new Elevator({...elevatorConfig,id:1});
-const elevator2 = new Elevator({...elevatorConfig,id:2});
+const elevator1 = new Elevator({ ...elevatorConfig, id: 1 });
+const elevator2 = new Elevator({ ...elevatorConfig, id: 2 });
 const dispatcher = new Dispatcher([elevator1, elevator2])
 // const dispatcher = new Dispatcher([elevator1])
 
@@ -25,7 +26,7 @@ const floorNumbers = computed(() => {
 interface ElevatorStates {
   1: ElevatorState,
   2: ElevatorState
-  [index:number]:ElevatorState
+  [index: number]: ElevatorState
 }
 
 interface ElevatorState {
@@ -38,7 +39,7 @@ interface ElevatorState {
 }
 
 const elevatorStates = reactive<ElevatorStates>({
-  
+
   1: {
     selectedFloors: [],
     currentFloor: 0,
@@ -47,7 +48,7 @@ const elevatorStates = reactive<ElevatorStates>({
     state: StateEnum.DOOR_CLOSED,
     elevatorDoorPercentage: 100
   },
-  2:{
+  2: {
     selectedFloors: [],
     currentFloor: 0,
     stoppingAtFloor: 0,
@@ -66,8 +67,8 @@ const floorsOrderedUp = ref<Array<number>>([])
 
 
 
-const registerElevatorEvents = (elevator: Elevator, id:number) => {
-  const state =  elevatorStates;
+const registerElevatorEvents = (elevator: Elevator, id: number) => {
+  const state = elevatorStates;
   elevator.on(ElevatorEventsEnum.DOOR_CLOSING_CANCELED, (data) => {
     console.log(`Event ${ElevatorEventsEnum.DOOR_CLOSING_CANCELED} emitted`, data);
 
@@ -80,7 +81,7 @@ const registerElevatorEvents = (elevator: Elevator, id:number) => {
 
   elevator.on(ElevatorEventsEnum.DESIGNATION_CHANGE, (data) => {
     console.log(`Event ${ElevatorEventsEnum.DESIGNATION_CHANGE} emitted`, data);
-    state[id] = {...state[id],designation:data}
+    state[id] = { ...state[id], designation: data }
   });
 
   elevator.on(ElevatorEventsEnum.CURRENT_FLOOR, (data) => {
@@ -103,7 +104,7 @@ const registerElevatorEvents = (elevator: Elevator, id:number) => {
 
 
   })
-  
+
   elevator.on(ElevatorEventsEnum.DOOR_STATE_PERCENTAGE, (data: number) => {
     state[id].elevatorDoorPercentage = data
     // console.log(`Event ${ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED} emitted`, data);
@@ -113,7 +114,7 @@ const registerElevatorEvents = (elevator: Elevator, id:number) => {
 
 }
 
-const registerDispatcherEvents=()=>{
+const registerDispatcherEvents = () => {
   dispatcher.on(ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, (data: Array<number>) => {
     floorsOrderedDown.value = [...data]
     // console.log(`Event ${ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED} emitted`, data);
@@ -164,19 +165,41 @@ const onOrderDown = (floor: number) => {
   dispatcher.orderDown(floor)
 }
 
-const getShaftStyle = (floor: number, percentage: number, elevatorId: number) => {
+const getShaftPosition = (elevatorId: number) => {
+  const numFloors = floorRange.value[1] - floorRange.value[0] + 1
   const elevator = elevatorId === 1 ? elevatorStates[1] : elevatorStates[2]
-  if (floor === elevator.currentFloor && elevator.stoppingAtFloor === floor) {
-    return {
-      background: `linear-gradient(to right, red ${percentage}%, transparent ${percentage}%)`
-    };
-  } else if (floor === elevator.currentFloor) {
-    return {
-      background: 'green'
-    }
-  }
-  return {}; // Default style for other floors
+  // const relativeLocation = elevator.currentFloor/numFloors
+  const deviationFromBottom = elevator.currentFloor - floorRange.value[0]
+  // return `${relativeLocation <= 0 ? relativeLocation : relativeLocation*100-10}%`
+  return `${(deviationFromBottom / numFloors) * 100}%`
+
 }
+
+const getShaftStyle = (elevatorId: number) => {
+  let background = undefined
+  const state = elevatorStates[elevatorId]
+  if (state.currentFloor === state.stoppingAtFloor) {
+    background = `linear-gradient(to right, red ${state.elevatorDoorPercentage}%, transparent ${state.elevatorDoorPercentage}%)`
+  }
+  return {
+    bottom: getShaftPosition(elevatorId),
+    background
+  }
+}
+
+// const getShaftStyle = (percentage: number, elevatorId: number) => {
+//   const elevator = elevatorId === 1 ? elevatorStates[1] : elevatorStates[2]
+//   if (floor === elevator.currentFloor && elevator.stoppingAtFloor === floor) {
+//     return {
+//       background: `linear-gradient(to right, red ${percentage}%, transparent ${percentage}%)`
+//     };
+//   } else if (floor === elevator.currentFloor) {
+//     return {
+//       background: 'green'
+//     }
+//   }
+//   return {}; // Default style for other floors
+// }
 
 </script>
 <template>
@@ -186,31 +209,22 @@ const getShaftStyle = (floor: number, percentage: number, elevatorId: number) =>
       <p class="indicator__elevatorDesignation">{{ designation }}</p>
     </section> -->
     <section id="panels">
-      
-      <div class="elevator">
-        <div class="elevator__floorButtons">
-          <button @click="onChooseFloor(floor,elevator1)" v-for="floor in floorNumbers" :key="floor" class="elevator__floorButton"
-            :class="{
-              'elevator__floorButton--selected': elevatorStates[1].selectedFloors.includes(floor)
-            }">{{ floor === 0 ? 'L' : floor }}
-          </button>
-          <button @click="onCloseDoor(elevator1)" class="elevator__action elevator__action--closeDoor">
-            &#9654;|&#9664;
-          </button>
-          <button @click="onOpenDoor(elevator1)" class="elevator__action elevator__action--openDoor">
-            &#9664;&#9654;
-          </button>
-        </div>
-      </div>
+      <ElevatorPanel :floor-numbers="floorNumbers" @on-choose-floor="(floor: number) => onChooseFloor(floor, elevator1)"
+        @on-open-door="onOpenDoor(elevator1)" @on-close-door="onCloseDoor(elevator1)"
+        :selected-floors="elevatorStates[1].selectedFloors" />
       <div class="building">
-        <div v-for="floor in floorNumbers" :key="floor" class="building__floor"
-          >
-          <div class="building__shaft" :style="getShaftStyle(floor, elevatorStates[1].elevatorDoorPercentage,1)">
-            <div v-if="elevator1.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP && elevator1.currentFloor === floor" class="building__indicator">&uarr;</div>
-            <div v-if="elevator1.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN && elevator1.currentFloor === floor" class="building__indicator">&darr;</div>
-            <!-- <div class="building__indicator"></div> -->
+        <!-- <div v-for="floor in floorNumbers" :key="floor" class="building__floor"> -->
+        <div class="building__shaft">
+          <div class="building__shaft-cart" :style="getShaftStyle(1)">
+            <div v-if="elevator1.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP"
+              class="building__indicator">&uarr;</div>
+            <div v-if="elevator1.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN"
+              class="building__indicator">&darr;</div>
           </div>
-          <div class="building__lobby">
+        </div>
+
+        <div class="building__lobby">
+          <div v-for="floor in floorNumbers" :key="floor" class="building__lobby-floor">
             <p class="building__writing">{{ floor === 0 ? 'L' : floor }}</p>
             <button v-if="floor !== floorRange[1]" @click="onOrderUp(floor)" class="building__floorButton"
               :class="{ 'building__floorButton--selected': floorsOrderedUp.includes(floor) }">&#9650;
@@ -219,29 +233,23 @@ const getShaftStyle = (floor: number, percentage: number, elevatorId: number) =>
               :class="{ 'building__floorButton--selected': floorsOrderedDown.includes(floor) }">&#9660;
             </button>
           </div>
-           <div class="building__shaft" :style="getShaftStyle(floor, elevatorStates[2].elevatorDoorPercentage,2)">
-            <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP && elevator2.currentFloor === floor" class="building__indicator">&uarr;</div>
-            <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN && elevator2.currentFloor === floor" class="building__indicator">&darr;</div>
-          </div> 
         </div>
+        <div class="building__shaft">
+          <div :style="getShaftStyle(2)" class="building__shaft-cart">
+            <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP && elevator2.currentFloor"
+              class="building__indicator">&uarr;</div>
+            <div
+              v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN && elevator2.currentFloor"
+              class="building__indicator">&darr;</div>
+          </div>
+        </div>
+
+        <!-- </div> -->
 
       </div>
-
-       <div class="elevator">
-        <div class="elevator__floorButtons">
-          <button @click="onChooseFloor(floor,elevator2)" v-for="floor in floorNumbers" :key="floor" class="elevator__floorButton"
-            :class="{
-              'elevator__floorButton--selected': elevatorStates[2].selectedFloors.includes(floor)
-            }">{{ floor === 0 ? 'L' : floor }}
-          </button>
-          <button @click="onCloseDoor(elevator2)" class="elevator__action elevator__action--closeDoor">
-            &#9654;|&#9664;
-          </button>
-          <button @click="onOpenDoor(elevator2)" class="elevator__action elevator__action--openDoor">
-            &#9664;&#9654;
-          </button>
-        </div>
-      </div> 
+      <ElevatorPanel :floor-numbers="floorNumbers" @on-choose-floor="(floor: number) => onChooseFloor(floor, elevator2)"
+        @on-open-door="onOpenDoor(elevator2)" @on-close-door="onCloseDoor(elevator2)"
+        :selected-floors="elevatorStates[2].selectedFloors" />
     </section>
 
   </div>

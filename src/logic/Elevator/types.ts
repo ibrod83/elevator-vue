@@ -24,6 +24,7 @@ export enum ElevatorEventsEnum {
     DOOR_OPENED = 'DOOR_OPENED',
     DOOR_CLOSED = 'DOOR_CLOSED',
     CURRENT_FLOOR = 'CURRENT_FLOOR',
+    PHYSICAL_LOCATION = 'PHYSICAL_LOCATION',
     STATE_CHANGE = 'STATE_CHANGE',
     CHOSEN_FLOORS_FROM_ELEVATOR_ADDED = 'CHOSEN_FLOORS_FROM_ELEVATOR_ADDED',
     STOPPING_AT_FLOOR = 'STOPPING_AT_FLOOR',
@@ -42,6 +43,7 @@ export interface ElevatorConfig {
     doorTimerDelay?:number
     completeDoorCycleTime?:number
     doorSteps?:number
+    travelSteps?:number
 }
 
 

@@ -10,7 +10,7 @@ import type { ElevatorConfig } from './types';
 const testTimeout = 30000
 
 const floorRange = [0, 9]
-const elevatorConfig: ElevatorConfig = { floorRange, id: 1, travelDelay: 1, doorTimerDelay: 1, completeDoorCycleTime: 5, doorSteps: 5 }
+const elevatorConfig: ElevatorConfig = { floorRange, id: 1, travelDelay: 1, doorTimerDelay: 1, completeDoorCycleTime: 5, doorSteps: 5,travelSteps:5 }
 
 describe('Elevator', () => {
     it('Should travel up and down correctly, via internal commands', async () => {

@@ -54,17 +54,41 @@
     display: flex;
     flex-direction: column;
     position: relative;
-    .building__shaft-cart {
+    .building__shaft-elevator {
+      transition: bottom 0.2s linear; /* Smooth transition for 1 second */
+    
       position: absolute;
       width:100%;
       min-height: 58px;
       display: flex;
       height: 100%;
       height:58px;
-      background-color: red;
+      background-color: lightgray;
       // width: 33.33%;
       justify-content: center; 
       // border: 1px solid pink;
+
+      .elevator__door{
+        background-color: grey;
+        // border: 1px solid black;
+        // z-index: 1000;
+        position: absolute;
+        height: 100%;
+        width: 50%; /* Doors cover half the cart width each */
+      }
+
+      .elevator__door--right{
+        // background-color: aqua;
+        right: 0;
+
+      }
+      .elevator__door--left{
+        // background-color: green;
+        left: 0;
+      }      
+      .elevator__indicator{
+        z-index: 2000;
+      }
     }
    } 
   

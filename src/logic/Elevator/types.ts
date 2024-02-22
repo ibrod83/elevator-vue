@@ -40,7 +40,8 @@ export interface ElevatorConfig {
     id:number
     floorRange: Array<number>
     travelDelay?: number
-    doorTimerDelay?:number
+    doorOpenDuration?:number
+    delayBeforeDoorOpens?:number
     completeDoorCycleTime?:number
     doorSteps?:number
     travelSteps?:number

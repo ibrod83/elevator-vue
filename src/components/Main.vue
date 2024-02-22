@@ -9,7 +9,7 @@ import { onMounted, onUnmounted, computed, markRaw, reactive, type Ref, type Raw
 
 import { ref } from 'vue'
 
-const elevatorConfig: Omit<ElevatorConfig, 'id'> = { floorRange: [-1, 9], travelDelay: 700, completeDoorCycleTime: 1000, doorTimerDelay: 1500 }
+const elevatorConfig: Omit<ElevatorConfig, 'id'> = { floorRange: [-1, 9], travelDelay: 500, completeDoorCycleTime: 1000, doorOpenDuration: 1500, delayBeforeDoorOpens:300, travelSteps: 5 }
 
 const elevator1 = new Elevator({ ...elevatorConfig, id: 1 });
 const elevator2 = new Elevator({ ...elevatorConfig, id: 2 });
@@ -176,30 +176,23 @@ const getShaftPosition = (elevatorId: number) => {
 }
 
 const getShaftStyle = (elevatorId: number) => {
-  let background = undefined
-  const state = elevatorStates[elevatorId]
-  if (state.currentFloor === state.stoppingAtFloor) {
-    background = `linear-gradient(to right, red ${state.elevatorDoorPercentage}%, transparent ${state.elevatorDoorPercentage}%)`
-  }
   return {
     bottom: getShaftPosition(elevatorId),
-    background
   }
 }
 
-// const getShaftStyle = (percentage: number, elevatorId: number) => {
-//   const elevator = elevatorId === 1 ? elevatorStates[1] : elevatorStates[2]
-//   if (floor === elevator.currentFloor && elevator.stoppingAtFloor === floor) {
-//     return {
-//       background: `linear-gradient(to right, red ${percentage}%, transparent ${percentage}%)`
-//     };
-//   } else if (floor === elevator.currentFloor) {
-//     return {
-//       background: 'green'
-//     }
-//   }
-//   return {}; // Default style for other floors
-// }
+const getElevatorDoorStyle = (elevatorId: number) => {
+  const state = elevatorStates[elevatorId]
+  const absoluteDoorPercentage = state.elevatorDoorPercentage
+  const relativePercentage = absoluteDoorPercentage/2
+  const styleObj = {
+    width:`${relativePercentage}%`
+  }
+
+  return styleObj
+}
+
+
 
 </script>
 <template>
@@ -215,11 +208,17 @@ const getShaftStyle = (elevatorId: number) => {
       <div class="building">
         <!-- <div v-for="floor in floorNumbers" :key="floor" class="building__floor"> -->
         <div class="building__shaft">
-          <div class="building__shaft-cart" :style="getShaftStyle(1)">
+          <div class="building__shaft-elevator" :style="getShaftStyle(1)">
+            <div class="elevator__door elevator__door--left" :style="getElevatorDoorStyle(1)">
+              
+            </div>
+            <div class="elevator__door elevator__door--right" :style="getElevatorDoorStyle(1)">
+
+            </div>
             <div v-if="elevator1.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP"
-              class="building__indicator">&uarr;</div>
+              class="elevator__indicator" >&uarr;</div>
             <div v-if="elevator1.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN"
-              class="building__indicator">&darr;</div>
+              class="elevator__indicator">&darr;</div>
           </div>
         </div>
 
@@ -235,12 +234,18 @@ const getShaftStyle = (elevatorId: number) => {
           </div>
         </div>
         <div class="building__shaft">
-          <div :style="getShaftStyle(2)" class="building__shaft-cart">
-            <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP && elevator2.currentFloor"
-              class="building__indicator">&uarr;</div>
+          <div :style="getShaftStyle(2)" class="building__shaft-elevator">
+            <div class="elevator__door elevator__door--left" :style="getElevatorDoorStyle(2)">
+              
+            </div>
+            <div class="elevator__door elevator__door--right" :style="getElevatorDoorStyle(2)">
+
+            </div>
+            <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP && elevator2.currentFloor" 
+              class="elevator__indicator">&uarr;</div>
             <div
               v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN && elevator2.currentFloor"
-              class="building__indicator">&darr;</div>
+              class="elevator__indicator">&darr;</div>
           </div>
         </div>
 

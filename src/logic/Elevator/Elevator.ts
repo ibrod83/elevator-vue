@@ -6,7 +6,8 @@ import { delay, hasHigher, hasLower } from "./utils"
 
 export class Elevator extends EventEmitter {
 
-    private doorTimerDelay: number
+    private doorOpenDuration: number
+    private delayBeforeDoorOpens:number
     private travelDelay: number
     private travelSteps:number
     private doorTimer: NodeJS.Timeout | null = null
@@ -23,12 +24,14 @@ export class Elevator extends EventEmitter {
     public id: number
     constructor(config: ElevatorConfig) {
         super()
-        const { floorRange, id, travelDelay = 1000, doorTimerDelay = 1000, completeDoorCycleTime = 1000, doorSteps = 100, travelSteps=100 } = config
+        const { floorRange, id, travelDelay = 1000, doorOpenDuration = 1000, completeDoorCycleTime = 1000, doorSteps = 100,
+             travelSteps=100,delayBeforeDoorOpens=0 } = config
         this.door = new Door({ completeDoorCycleTime, doorSteps })
-        this.id = id;
+        this.id = id;        
         this.travelSteps = travelSteps
         this.registerDoorEvents()
-        this.doorTimerDelay = doorTimerDelay
+        this.doorOpenDuration = doorOpenDuration
+        this.delayBeforeDoorOpens = delayBeforeDoorOpens
         this.floorRange = floorRange
         this.travelDelay = travelDelay
         this.designatedDirection = DesignatedDirectionEnum.IDLE
@@ -47,7 +50,7 @@ export class Elevator extends EventEmitter {
         this.door.on(DoorEventsEnum.DOOR_OPENED, () => {//
             this.setState(StateEnum.DOOR_OPEN)
             this.emit(ElevatorEventsEnum.DOOR_OPENED)
-            this.doorTimer = setTimeout(this._closeDoor, this.doorTimerDelay)
+            this.doorTimer = setTimeout(this._closeDoor, this.doorOpenDuration)
         })
 
         this.door.on(DoorEventsEnum.DOOR_STATE_PERCENTAGE, (percentage) => {//            
@@ -179,6 +182,9 @@ export class Elevator extends EventEmitter {
         // Always clear selected floors from within the elevator
         this.selectedFloors = this.selectedFloors.filter(filterFunc)
 
+        if(this.delayBeforeDoorOpens){
+            await delay(this.delayBeforeDoorOpens)
+        }
         this._openDoor()
 
         if (isFloorOrderedForCurrentDirection) {

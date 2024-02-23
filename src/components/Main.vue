@@ -9,7 +9,7 @@ import { onMounted, onUnmounted, computed, markRaw, reactive, type Ref, type Raw
 
 import { ref } from 'vue'
 
-const elevatorConfig: Omit<ElevatorConfig, 'id'> = { floorRange: [-1, 9], travelDelay: 500, completeDoorCycleTime: 1000, doorOpenDuration: 1500, delayBeforeDoorOpens:300, travelSteps: 5 }
+const elevatorConfig: Omit<ElevatorConfig, 'id'> = { floorRange: [-1, 9], travelDelay: 500, completeDoorCycleTime: 1000, doorOpenDuration: 1500, delayBeforeDoorOpens:400,  travelSteps: 5 }
 
 const elevator1 = new Elevator({ ...elevatorConfig, id: 1 });
 const elevator2 = new Elevator({ ...elevatorConfig, id: 2 });

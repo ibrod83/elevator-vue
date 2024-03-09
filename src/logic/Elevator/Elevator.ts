@@ -89,32 +89,27 @@ export class Elevator extends EventEmitter {
 
     private async runElevatorInDirection(direction: DirectionsEnum) {
 
-        const isMovingUp = direction === DirectionsEnum.UP;
-
-        let isFloorSpecificallySelected = false
-        let isFloorOrderedForCurrentDirection = false
-        let isFloorOrderedToOppositeDirection = false
-        let isFloorOrderedUp = false
-        let isFloorOrderedDown = false
-
         while (!this.isDestroyed) {
+            const isMovingUp = direction === DirectionsEnum.UP;
             this.setState(StateEnum.MOVING)
-            const nextFloor = this.currentFloor + (isMovingUp ? 1 : -1);
-            // await delay(this.travelDelay);
+            const nextFloor = this.currentFloor + (isMovingUp ? 1 : -1);            
 
-            isFloorOrderedUp = this.floorsOrderedUp.includes(nextFloor)
-            isFloorOrderedDown = this.floorsOrderedDown.includes(nextFloor)
-            isFloorSpecificallySelected = this.selectedFloors.includes(nextFloor)
-            isFloorOrderedForCurrentDirection = direction === DirectionsEnum.UP ? isFloorOrderedUp : isFloorOrderedDown
-            isFloorOrderedToOppositeDirection = direction === DirectionsEnum.UP ? isFloorOrderedDown : isFloorOrderedUp
+            const isFloorOrderedUp = this.floorsOrderedUp.includes(nextFloor)
+            const isFloorOrderedDown = this.floorsOrderedDown.includes(nextFloor)
+            const isFloorSpecificallySelected = this.selectedFloors.includes(nextFloor)
+            const isFloorOrderedForCurrentDirection = direction === DirectionsEnum.UP ? isFloorOrderedUp : isFloorOrderedDown
+            const isFloorOrderedToOppositeDirection = direction === DirectionsEnum.UP ? isFloorOrderedDown : isFloorOrderedUp
 
             const isFloorFlagged = isFloorOrderedDown || isFloorOrderedUp || isFloorSpecificallySelected
             const hasHigher = this.hasHigher(nextFloor)
             const hasLower = this.hasLower(nextFloor)
             const hasMoreInRelevantDirection = isMovingUp ? hasHigher : hasLower
+            
             const afterStop = () => this.handleAfterStopAtFloor(nextFloor, isFloorOrderedForCurrentDirection, isFloorOrderedToOppositeDirection, isFloorOrderedUp, hasHigher, hasLower);
-
-            if (!hasMoreInRelevantDirection || (isFloorFlagged && (isFloorOrderedForCurrentDirection || isFloorSpecificallySelected))) {
+            
+            const shouldStopOnTheNextFloor = !hasMoreInRelevantDirection || (isFloorFlagged && (isFloorOrderedForCurrentDirection || isFloorSpecificallySelected)) 
+            
+            if (shouldStopOnTheNextFloor) {
                 await this.handleMovementWithStop(direction)
                 this.currentFloor = nextFloor
                 this.emit(ElevatorEventsEnum.CURRENT_FLOOR, nextFloor);
@@ -225,7 +220,6 @@ export class Elevator extends EventEmitter {
 
     private emitStopAtFloorEvents() {
         this.emit(ElevatorEventsEnum.SELECTED_FLOORS_CHANGED, this.selectedFloors)
-        // this.emit(ElevatorEventsEnum.CURRENT_FLOOR, this.currentFloor)
         this.emit(ElevatorEventsEnum.FLOORS_ORDERED_DOWN_CHANGED, this.floorsOrderedDown)
         this.emit(ElevatorEventsEnum.FLOORS_ORDERED_UP_CHANGED, this.floorsOrderedUp)
         this.emit(ElevatorEventsEnum.STOPPING_AT_FLOOR, this.currentFloor)

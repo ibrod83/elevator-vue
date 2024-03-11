@@ -196,104 +196,125 @@ const getElevatorDoorStyle = (elevatorId: number) => {
 
 </script>
 <template>
-  <div class="container">
+  <div >
 
-    <main class="main">
+    <main class="main container-fluid">
+      <div class="row">
+        <div class="col-6">
+          <section class="building">
+            <div class="building__roof">
+              <div class="building__roof-triangle"></div>
+              <div class="building__roof-rectangle"></div>
+              <div class="building__roof-circle"></div>
+            </div>
+            <!-- <div v-for="floor in floorNumbers" :key="floor" class="building__floor"> -->
+            <div class="building__body">
+              <div class="building__shaft">
+                <div class="elevator" :style="getElevatorStyle(1)">
+                  <div class="elevator__door elevator__door--left" :style="getElevatorDoorStyle(1)">
 
-      <section class="building">
-        <div class="building__roof">
-          <div class="building__roof-triangle"></div>
-          <div class="building__roof-rectangle"></div>
-          <div class="building__roof-circle"></div>
+                  </div>
+                  <div class="elevator__door elevator__door--right" :style="getElevatorDoorStyle(1)">
+
+                  </div>
+                  <div v-if="elevator1.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP"
+                    class="elevator__indicator">&uarr;</div>
+                  <div v-if="elevator1.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN"
+                    class="elevator__indicator">&darr;</div>
+                </div>
+              </div>
+
+              <div class="building__lobby">
+                <div v-for="floor in floorNumbers" :key="floor" class="building__lobby-floor">
+                  <p class="building__writing">{{ floor === 0 ? 'L' : floor }}</p>
+                  <button v-if="floor !== floorRange[1]" @click="onOrderUp(floor)" class="building__floorButton"
+                    :class="{ 'building__floorButton--selected': floorsOrderedUp.includes(floor) }">&#9650;
+                  </button>
+                  <button v-if="floor !== floorRange[0]" @click="onOrderDown(floor)" class="building__floorButton"
+                    :class="{ 'building__floorButton--selected': floorsOrderedDown.includes(floor) }">&#9660;
+                  </button>
+                </div>
+              </div>
+              <div class="building__shaft">
+                <div class="elevator" :style="getElevatorStyle(2)">
+                  <div class="elevator__door elevator__door--left" :style="getElevatorDoorStyle(2)">
+
+                  </div>
+                  <div class="elevator__door elevator__door--right" :style="getElevatorDoorStyle(2)">
+
+                  </div>
+                  <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP"
+                    class="elevator__indicator">&uarr;</div>
+                  <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN"
+                    class="elevator__indicator">&darr;</div>
+                </div>
+              </div>
+            </div>
+
+
+            <!-- </div> -->
+
+          </section>
         </div>
-        <!-- <div v-for="floor in floorNumbers" :key="floor" class="building__floor"> -->
-        <div class="building__body">
-          <div class="building__shaft">
-            <div class="elevator" :style="getElevatorStyle(1)">
-              <div class="elevator__door elevator__door--left" :style="getElevatorDoorStyle(1)">
+        <div class="col-6">
+          <div class="row">
+            <div class="col">
+              <header class="header">
+                <h1>Elevator simulator</h1>
+                <h2>Simple simulator of a two-elevator system in a building</h2>
+              </header>
+
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <div class="panels">
+
+                <div class="elevator-panel">
+                  <ElevatorPanel :designatedDirection="elevatorStates[1].designatedDirection"
+                    :current-floor="Math.round(elevatorStates[1].currentFloor)" :floor-numbers="floorNumbers"
+                    @on-choose-floor="(floor: number) => onChooseFloor(floor, elevator1)"
+                    @on-open-door="onOpenDoor(elevator1)" @on-close-door="onCloseDoor(elevator1)"
+                    :selected-floors="elevatorStates[1].selectedFloors" />
+                </div>
+                <div class="elevator-panel">
+                  <ElevatorPanel :designatedDirection="elevatorStates[2].designatedDirection"
+                    :current-floor="Math.round(elevatorStates[2].currentFloor)" :floor-numbers="floorNumbers"
+                    @on-choose-floor="(floor: number) => onChooseFloor(floor, elevator2)"
+                    @on-open-door="onOpenDoor(elevator2)" @on-close-door="onCloseDoor(elevator2)"
+                    :selected-floors="elevatorStates[2].selectedFloors" />
+                </div>
 
               </div>
-              <div class="elevator__door elevator__door--right" :style="getElevatorDoorStyle(1)">
+            </div>
+            <div class="col">
+              <div class="description">
+                <p>The program simulates the behavior of a typical pair of elevators. Each elevator has specific buttons
+                  for
+                  every floor in the building, whereas each floor hallway(except for the edge floors) has "up" and
+                  "down"
+                  buttons, to dispatch an elevator</p>
+                <br>
+                <p> The code is here: www.link-link-link.com</p>
+                <br>
+                <p> Code: ibrod83</p>
+                <br>
+                <p> Design: rona manor</p>
 
               </div>
-              <div v-if="elevator1.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP"
-                class="elevator__indicator">&uarr;</div>
-              <div v-if="elevator1.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN"
-                class="elevator__indicator">&darr;</div>
+              <div class="controls">
+                <button>1</button>
+                <button>2</button>
+                <button>3</button>
+              </div>
             </div>
           </div>
 
-          <div class="building__lobby">
-            <div v-for="floor in floorNumbers" :key="floor" class="building__lobby-floor">
-              <p class="building__writing">{{ floor === 0 ? 'L' : floor }}</p>
-              <button v-if="floor !== floorRange[1]" @click="onOrderUp(floor)" class="building__floorButton"
-                :class="{ 'building__floorButton--selected': floorsOrderedUp.includes(floor) }">&#9650;
-              </button>
-              <button v-if="floor !== floorRange[0]" @click="onOrderDown(floor)" class="building__floorButton"
-                :class="{ 'building__floorButton--selected': floorsOrderedDown.includes(floor) }">&#9660;
-              </button>
-            </div>
-          </div>
-          <div class="building__shaft">
-            <div class="elevator" :style="getElevatorStyle(2)">
-              <div class="elevator__door elevator__door--left" :style="getElevatorDoorStyle(2)">
-
-              </div>
-              <div class="elevator__door elevator__door--right" :style="getElevatorDoorStyle(2)">
-
-              </div>
-              <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP"
-                class="elevator__indicator">&uarr;</div>
-              <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN"
-                class="elevator__indicator">&darr;</div>
-            </div>
-          </div>
         </div>
-
-
-        <!-- </div> -->
-
-      </section>
-
-      <header class="header">
-        <h1>Elevator simulator</h1>
-        <h2>Simple simulator of a two-elevator system in a building</h2>
-      </header>
-
-      <div class="panels">
-
-        <div class="elevator-panel">
-          <ElevatorPanel :designatedDirection="elevatorStates[1].designatedDirection"
-            :current-floor="Math.round(elevatorStates[1].currentFloor)" :floor-numbers="floorNumbers"
-            @on-choose-floor="(floor: number) => onChooseFloor(floor, elevator1)" @on-open-door="onOpenDoor(elevator1)"
-            @on-close-door="onCloseDoor(elevator1)" :selected-floors="elevatorStates[1].selectedFloors" />
-        </div>
-        <div class="elevator-panel">
-          <ElevatorPanel :designatedDirection="elevatorStates[2].designatedDirection"
-            :current-floor="Math.round(elevatorStates[2].currentFloor)" :floor-numbers="floorNumbers"
-            @on-choose-floor="(floor: number) => onChooseFloor(floor, elevator2)" @on-open-door="onOpenDoor(elevator2)"
-            @on-close-door="onCloseDoor(elevator2)" :selected-floors="elevatorStates[2].selectedFloors" />
-        </div>
-
       </div>
 
-      <div class="description">
-        <p>The program simulates the behavior of a typical pair of elevators. Each elevator has specific buttons for
-        every floor in the building, whereas each floor hallway(except for the edge floors) has "up" and "down"
-        buttons, to dispatch an elevator</p>
-        <br>
-        <p> The code is here: www.link-link-link.com</p>
-        <br>
-       <p> Code: ibrod83</p>
-       <br>
-       <p> Design: rona manor</p>
-       
-      </div>
-      <div class="controls">
-        <button>1</button>
-        <button>2</button>
-        <button>3</button>
-      </div>
+
+
     </main>
 
   </div>

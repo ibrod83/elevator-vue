@@ -1,17 +1,4 @@
-.container {
 
-  // padding: 10%;
-  padding: 5% 13%;
-
-  @media (max-width: 1280px) {
-    padding: 2rem 2rem;
-  }
-
-  @media (max-width: 768px) {
-    padding: 1rem 0.3rem;
-  }
-
-}
 
 .button {
   font-size: x-large;
@@ -30,47 +17,47 @@
 
 
 .main {
-  border: 1px solid black;
-  gap: 2rem;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(3, auto);
-  // grid-template-rows: minmax(50px, auto) 1fr;
+  // border: 1px solid black;
+  // gap: 2rem;
+  // display: grid;
+  // grid-template-columns: repeat(5, 1fr);
+  // grid-template-rows: repeat(3, auto);
+  // // grid-template-rows: minmax(50px, auto) 1fr;
   
-  grid-template-areas:
-    "building building header header header"
-    "building building panels panels description"
-    "building building panels panels controls"
-  ;
+  // grid-template-areas:
+  //   "building building header header header"
+  //   "building building panels panels description"
+  //   "building building panels panels controls"
+  // ;
 
 
-  @media (max-width: 1280px) {
-    grid-template-columns: repeat(2, 1fr);
-    /* grid-template-rows: repeat(3,auto); */
-    grid-template-areas:
-      "header header"
-      "description description"
-      "panels panels"
-      "building building"
-      "controls .";
-  }
+  // @media (max-width: 1280px) {
+  //   grid-template-columns: repeat(2, 1fr);
+  //   /* grid-template-rows: repeat(3,auto); */
+  //   grid-template-areas:
+  //     "header header"
+  //     "description description"
+  //     "panels panels"
+  //     "building building"
+  //     "controls .";
+  // }
 
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(1, 1fr);
-    /* grid-template-rows: repeat(3,auto); */
-    grid-template-areas:
-      "header"
-      "panels"
-      "building"
-      "controls"
-      "description";
-  }
+  // @media (max-width: 768px) {
+  //   grid-template-columns: repeat(1, 1fr);
+  //   /* grid-template-rows: repeat(3,auto); */
+  //   grid-template-areas:
+  //     "header"
+  //     "panels"
+  //     "building"
+  //     "controls"
+  //     "description";
+  // }
 }
 
 
 
 .panels {
-  grid-area: panels;
+  // grid-area: panels;
   gap: 4%;
   // grid-column-start: 4;
   // grid-column-end: 5;
@@ -80,7 +67,7 @@
 }
 
 .building {
-  grid-area: building;
+  // grid-area: building;
   // grid-column-start: 1;
   // grid-column-end: 4;
   // grid-row: 1 / -1;
@@ -90,7 +77,7 @@
 }
 
 .header {
-  grid-area: header;
+  // grid-area: header;
   h1 {
     font-size: 7.5rem;
   }
@@ -100,7 +87,7 @@
 }
 
 .description {
-  grid-area: description;
+  // grid-area: description;
   padding-left: 2rem;
   // grid-column-start: 5;
   // grid-column-end: 6;
@@ -110,7 +97,7 @@
 }
 
 .controls {
-  grid-area: controls;
+  // grid-area: controls;
   padding-left: 2rem;
   display: flex;
   // grid-column-start: 5;

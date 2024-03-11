@@ -1,7 +1,7 @@
 .container {
 
   // padding: 10%;
-  padding:5% 13%;
+  padding: 5% 13%;
 
   @media (max-width: 1280px) {
     padding: 2rem 2rem;
@@ -31,95 +31,102 @@
 
 .main {
   border: 1px solid black;
-  grid-template-columns: repeat(10, fr);
-  // grid-template-rows: repeat(8, 8rem);
-  grid-template-rows: repeat(2, auto);
   gap: 2rem;
   display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(3, auto);
+  // grid-template-rows: minmax(50px, auto) 1fr;
+  
+  grid-template-areas:
+    "building building header header header"
+    "building building panels panels description"
+    "building building panels panels controls"
+  ;
+
+
+  @media (max-width: 1280px) {
+    grid-template-columns: repeat(2, 1fr);
+    /* grid-template-rows: repeat(3,auto); */
+    grid-template-areas:
+      "header header"
+      "description description"
+      "panels panels"
+      "building building"
+      "controls .";
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(1, 1fr);
+    /* grid-template-rows: repeat(3,auto); */
+    grid-template-areas:
+      "header"
+      "panels"
+      "building"
+      "controls"
+      "description";
+  }
 }
 
 
 
 .panels {
+  grid-area: panels;
   gap: 4%;
-  grid-column-start: 4;
-  grid-column-end: 5;
+  // grid-column-start: 4;
+  // grid-column-end: 5;
   display: flex;
   justify-content: space-between;
 
 }
 
 .building {
-  grid-column-start: 1;
-  grid-column-end: 4;
-  grid-row: 1 / -1;
+  grid-area: building;
+  // grid-column-start: 1;
+  // grid-column-end: 4;
+  // grid-row: 1 / -1;
   position: relative;
 
 
 }
 
 .header {
-  h1{
+  grid-area: header;
+  h1 {
     font-size: 7.5rem;
   }
-  grid-column-start: 4;
+
+  // grid-column-start: 4;
   // grid-column-end: auto;
 }
 
 .description {
+  grid-area: description;
   padding-left: 2rem;
-  grid-column-start: 5;
-  grid-column-end: 6;
+  // grid-column-start: 5;
+  // grid-column-end: 6;
   // grid-row-start: 2;
   // grid-row-end: 4;
   font-size: large;
 }
 
 .controls {
+  grid-area: controls;
   padding-left: 2rem;
-  grid-column-start: 5;
-  grid-column-end: 6;
+  display: flex;
+  // grid-column-start: 5;
+  // grid-column-end: 6;
   // grid-row: 7/-1
 }
 
-@media (max-width: 768px) {
-  .main {
-    grid-template-columns: 100%;
-    grid-template-rows: max-content;
-  }
-  .description{
-    order:5;
-  }
-  .building{
-    order:3;
-  }
-  .panels{
-    order:2
-  }
-  .controls{
-    order:4
-  }
-  .header{
-    order:1
-  }
-  .panels,
-  .description,
-  .header,
-  .building,
-  .controls {
-    grid-column: auto; // Reset grid-column
-    // grid-row: auto; // Reset grid-row
-  } 
 
-
-}
 
 
 .building__body {
-  width: 46rem;
+  // height:634px;
+  // width: 46rem;
   position: relative;
-  border-right:1.5rem solid black;
-  border-left:1.5rem solid black;
+  border-right: 1.5rem solid black;
+  border-left: 1.5rem solid black;
   display: flex;
 }
 
@@ -129,22 +136,31 @@
   position: relative;
 }
 
+// .building__roof-triangle {
+
+//   width: 0rem;
+//   height: 0rem;
+//   border-style: solid;
+//   border-width: 0% 100% 10% 100%;
+//   border-color: transparent transparent red transparent;
+//   transform: rotate(0deg);
+
+// }
 .building__roof-triangle {
 
-  width: 0rem;
-  height: 0rem;
-  border-style: solid;
-  border-width: 0 23rem 9.5rem 23rem;
-  border-color: transparent transparent red transparent;
-  transform: rotate(0deg);
+  // width: 150px;
+  height: 100%;
+  background: #666;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  position: relative;
 
 }
 
 .building__roof-rectangle {
-  width: 15rem;
-  height: 5rem;
+  width: 50%;
+  height: 50%;
   position: absolute;
-  background-color: red;
+  background-color: #666;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -170,14 +186,22 @@
   position: relative;
 
 }
+
 .building__shaft::before {
-  content: ""; /* Required for pseudo-elements */
-  position: absolute; /* Position the pseudo-element */
-  top: 0; /* Position at the top of the div */
-  bottom: 0; /* Extend to the bottom of the div */
-  left: 50%; /* Position in the middle */
-  border-left: 0.7rem dotted black; /* Create a dotted line */
-  transform: translateX(-50%); /* Adjust to center the line */
+  content: "";
+  /* Required for pseudo-elements */
+  position: absolute;
+  /* Position the pseudo-element */
+  top: 0;
+  /* Position at the top of the div */
+  bottom: 0;
+  /* Extend to the bottom of the div */
+  left: 50%;
+  /* Position in the middle */
+  border-left: 0.7rem dotted black;
+  /* Create a dotted line */
+  transform: translateX(-50%);
+  /* Adjust to center the line */
 }
 
 
@@ -281,7 +305,7 @@
   justify-content: space-around;
 }
 
-.elevator-panel__direction-indicator{
+.elevator-panel__direction-indicator {
   width: 0;
   height: 0;
   border-left: 20px solid transparent;
@@ -289,13 +313,14 @@
 }
 
 .elevator-panel__direction-indicator--up {
-  
-  border-bottom: 40px solid green; 
+
+  border-bottom: 40px solid green;
 }
 
-.elevator-panel__direction-indicator--down{
- 
-  border-top: 40px solid green; /* Change the color to match your needs */
+.elevator-panel__direction-indicator--down {
+
+  border-top: 40px solid green;
+  /* Change the color to match your needs */
 }
 
 

@@ -225,13 +225,20 @@ const getElevatorDoorStyle = (elevatorId: number) => {
 
           <div class="building__lobby">
             <div v-for="floor in floorNumbers" :key="floor" class="building__lobby-floor">
-              <p class="building__writing">{{ floor === 0 ? 'L' : floor }}</p>
-              <button v-if="floor !== floorRange[1]" @click="onOrderUp(floor)" class="building__floorButton"
-                :class="{ 'building__floorButton--selected': floorsOrderedUp.includes(floor) }">&#9650;
-              </button>
-              <button v-if="floor !== floorRange[0]" @click="onOrderDown(floor)" class="building__floorButton"
-                :class="{ 'building__floorButton--selected': floorsOrderedDown.includes(floor) }">&#9660;
-              </button>
+              <!-- <div class="building__lobby-floor-frame"> -->
+                <!-- <p class="building__writing">{{ floor === 0 ? 'L' : floor }}</p> -->
+                <!-- <div v-if="floor==floorRange[1]" class="building__lobby-floor-indicator--down"></div>     -->
+
+                <button v-if="floor !== floorRange[1]" @click="onOrderUp(floor)" class="building__floorButton"
+                  :class="{ 'building__floorButton--selected': floorsOrderedUp.includes(floor) }">&#9650;
+                </button>
+                <button v-if="floor !== floorRange[0]" @click="onOrderDown(floor)" class="building__floorButton"
+                  :class="{ 'building__floorButton--selected': floorsOrderedDown.includes(floor) }">&#9660;
+                </button>
+                <!-- <div v-if="floor==floorRange[1]" class="building__lobby-floor-indicator--up"></div>     -->
+              <!-- </div> -->
+
+
             </div>
           </div>
           <div class="building__shaft">
@@ -255,10 +262,10 @@ const getElevatorDoorStyle = (elevatorId: number) => {
 
       </section>
 
-      <header class="header">
+      <!-- <header class="header">
         <h1>Elevator simulator</h1>
         <h2>Simple simulator of a two-elevator system in a building</h2>
-      </header>
+      </header> -->
 
       <div class="panels">
 
@@ -277,7 +284,7 @@ const getElevatorDoorStyle = (elevatorId: number) => {
 
       </div>
 
-      <div class="description">
+      <!-- <div class="description">
         <p>The program simulates the behavior of a typical pair of elevators. Each elevator has specific buttons for
         every floor in the building, whereas each floor hallway(except for the edge floors) has "up" and "down"
         buttons, to dispatch an elevator</p>
@@ -288,12 +295,12 @@ const getElevatorDoorStyle = (elevatorId: number) => {
        <br>
        <p> Design: rona manor</p>
        
-      </div>
-      <div class="controls">
+      </div> -->
+      <!-- <div class="controls">
         <button>1</button>
         <button>2</button>
         <button>3</button>
-      </div>
+      </div> -->
     </main>
 
   </div>

@@ -1,5 +1,6 @@
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
+  font-size: 62.5%;
   --vt-c-white: #ffffff;
   --vt-c-white-soft: #f8f8f8;
   --vt-c-white-mute: #f2f2f2;
@@ -59,8 +60,12 @@
   font-weight: normal;
 }
 
+html{
+  height: 100%;
+}
+
 body {
-  min-height: 100vh;
+  height: 100%;
   color: var(--color-text);
   background: var(--color-background);
   transition:
@@ -80,7 +85,7 @@ body {
     'Droid Sans',
     'Helvetica Neue',
     sans-serif;
-  font-size: 15px;
+  /* font-size: 15px; */
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

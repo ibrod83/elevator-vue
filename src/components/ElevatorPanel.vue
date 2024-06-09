@@ -7,7 +7,8 @@ const props = defineProps({
     floorNumbers: Array<number>,
     selectedFloors: Array<number>,
     currentFloor: Number,
-    designatedDirection: String
+    designatedDirection: String,
+   
 });
 
 const emit = defineEmits<{
@@ -49,7 +50,7 @@ const onCloseDoor = () => {
 
         </div>
         <div class="elevator-panel__action-buttons">
-            <button class="button elevator-panel__action">
+            <button class="button elevator-panel__action ">
                 <span class=" material-symbols-outlined">
                     crisis_alert
                 </span>
@@ -66,7 +67,8 @@ const onCloseDoor = () => {
             <button @click="onOpenDoor()" class="button elevator-panel__action elevator-panel__action--openDoor">
                 <span>
                     &#9664;
-                </span><span>
+                </span>
+                <span >
                     &#9654;
 
                 </span>

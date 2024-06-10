@@ -36,10 +36,10 @@ const onCloseDoor = () => {
         <div class="elevator-panel__indicators">
             <div class="elevator-panel__floor-number">{{ currentFloor || "L" }}</div>
             <!-- <div class="elevator-panel__direction-indicator"> &#9650;</div> -->
-            <div  class="elevator-panel__direction-indicator elevator-panel__direction-indicator--up"></div>
-            <!-- <div v-if="designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP" class="elevator-panel__direction-indicator elevator-panel__direction-indicator--up"></div>
+            <!-- <div  class="elevator-panel__direction-indicator elevator-panel__direction-indicator--up"></div> -->
+            <div v-if="designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP" class="elevator-panel__direction-indicator elevator-panel__direction-indicator--up"></div>
             <div v-if="designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN" class="elevator-panel__direction-indicator elevator-panel__direction-indicator--down"></div>
-            <div v-if="designatedDirection === DesignatedDirectionEnum.IDLE" class="elevator-panel__direction-indicator"></div> -->
+            <div v-if="designatedDirection === DesignatedDirectionEnum.IDLE" class="elevator-panel__direction-indicator"></div>
         </div>
         <div class="elevator-panel__floor-buttons">
             <button @click="onChooseFloor(floor)" v-for="floor in floorNumbers"

@@ -1,7 +1,13 @@
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
-  font-size: 62.5%;
+  // font-size: 62.5%;
+  // @media (max-width: 1280px) {
+  //   font-size: 61%
+  // }
 
+  // @media (max-width: 768px) {
+  //   font-size: 60%;
+  // }
 
   --left-color: #c1e228; 
   --right-color: #28cebe; 
@@ -9,6 +15,13 @@
   --secondary-color: #e228cd; 
   --primary-color: #aba3fb; 
   --text-color: black;
+
+  // --left-color: #E8BA2F;
+  // --right-color: #1CB2A6; 
+  // --background-color: #fcfcfb;
+  // --secondary-color: #C9A9FF; 
+  // --primary-color: #D3E4FF; 
+  // --text-color: black;
 
 }
 

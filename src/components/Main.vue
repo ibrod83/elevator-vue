@@ -9,7 +9,7 @@ import { onMounted, onUnmounted, computed, markRaw, reactive, type Ref, type Raw
 
 import { ref } from 'vue'
 
-const elevatorConfig: Omit<ElevatorConfig, 'id'> = { floorRange: [-1, 8], travelDelay: 500, completeDoorCycleTime: 1000, doorOpenDuration: 1500, delayBeforeDoorOpens: 300, travelSteps: 5 }
+const elevatorConfig: Omit<ElevatorConfig, 'id'> = { floorRange: [-1, 6], travelDelay: 250, completeDoorCycleTime: 1000, doorOpenDuration: 1500, delayBeforeDoorOpens: 300, travelSteps: 5 }
 
 const elevator1 = new Elevator({ ...elevatorConfig, id: 1 });
 const elevator2 = new Elevator({ ...elevatorConfig, id: 2 });
@@ -138,7 +138,30 @@ onUnmounted(() => {//
   // elevator.cleanup();
   elevator1.destroy()
   elevator2.destroy()
+  // window.removeEventListener('resize', matchHeights);
 })
+
+
+// const matchHeights = () => {
+//   // mainBoxes.value.forEach((box, index) => {
+//   //   const boxHeight = box.offsetHeight;
+//   //   if (greenCartItems.value[index]) greenCartItems.value[index].style.height = `${boxHeight}px`;
+//   //   if (blueCartItems.value[index]) blueCartItems.value[index].style.height = `${boxHeight}px`;
+//   // });
+//   //@ts-ignore
+//   const buildingLobbyFloorHeight = document.querySelector('.building__lobby-floor')?.offsetHeight
+//   console.log(buildingLobbyFloorHeight)
+//   //@ts-ignore
+//   document.querySelectorAll('.elevator').forEach(i=>i.style.height = `${buildingLobbyFloorHeight}px`)
+
+// };
+
+// onMounted(() => {
+//   matchHeights();
+//   window.addEventListener('resize', matchHeights);
+// });
+
+
 
 const onOpenDoor = (elevator: Elevator) => {
   // console.log('onOpenDoor')

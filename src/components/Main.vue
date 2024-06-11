@@ -230,7 +230,6 @@ const getElevatorDoorStyle = (elevatorId: number) => {
           <div class="building__roof-rectangle"></div>
           <div class="building__roof-circle"></div>
         </div>
-        <!-- <div v-for="floor in floorNumbers" :key="floor" class="building__floor"> -->
         <div class="building__body">
           <div class="building__shaft building__shaft--left">
             <div class="elevator elevator--left" :style="getElevatorStyle(1)">
@@ -240,26 +239,20 @@ const getElevatorDoorStyle = (elevatorId: number) => {
               <div class="elevator__door elevator__door--right bg-left" :style="getElevatorDoorStyle(1)">
 
               </div>
-              <div v-if="elevator1.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP"
-                class="elevator__indicator">&uarr;</div>
-              <div v-if="elevator1.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN"
-                class="elevator__indicator">&darr;</div>
+
             </div>
           </div>         
           <div class="building__lobby">
             <div v-for="floor in floorNumbers" :key="floor" class="building__lobby-floor">
-              <!-- <div class="building__lobby-floor-frame"> -->
-              <!-- <p class="building__writing">{{ floor === 0 ? 'L' : floor }}</p> -->
-              <!-- <div v-if="floor==floorRange[1]" class="building__lobby-floor-indicator--down"></div>     -->
+         
 
-              <button v-if="floor !== floorRange[1]" @click="onOrderUp(floor)" class="building__floorButton"
+              <button v-if="floor !== floorRange[1]" @click="onOrderUp(floor)" class="button building__floorButton"
                 :class="{ 'building__floorButton--selected': floorsOrderedUp.includes(floor) }">&#9650;
               </button>
-              <button v-if="floor !== floorRange[0]" @click="onOrderDown(floor)" class="building__floorButton"
+              <button v-if="floor !== floorRange[0]" @click="onOrderDown(floor)" class="button building__floorButton"
                 :class="{ 'building__floorButton--selected': floorsOrderedDown.includes(floor) }">&#9660;
               </button>
-              <!-- <div v-if="floor==floorRange[1]" class="building__lobby-floor-indicator--up"></div>     -->
-              <!-- </div> -->
+           
 
 
             </div>
@@ -272,16 +265,12 @@ const getElevatorDoorStyle = (elevatorId: number) => {
               <div class="elevator__door elevator__door--right bg-right" :style="getElevatorDoorStyle(2)">
 
               </div>
-              <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_UP"
-                class="elevator__indicator">&uarr;</div>
-              <div v-if="elevator2.designatedDirection === DesignatedDirectionEnum.DESIGNATED_DOWN"
-                class="elevator__indicator">&darr;</div>
+
             </div>
           </div>
         </div>
 
 
-        <!-- </div> -->
 
       </section>
 
@@ -292,13 +281,13 @@ const getElevatorDoorStyle = (elevatorId: number) => {
 
       <div class="panels">
 
-        <div class="elevator-panel bg-left border-left color-left">
+        <div class="elevator-panel bg-left border-left color-left fill-left">
           <ElevatorPanel  :designatedDirection="elevatorStates[1].designatedDirection"
             :current-floor="Math.round(elevatorStates[1].currentFloor)" :floor-numbers="floorNumbers"
             @on-choose-floor="(floor: number) => onChooseFloor(floor, elevator1)" @on-open-door="onOpenDoor(elevator1)"
             @on-close-door="onCloseDoor(elevator1)" :selected-floors="elevatorStates[1].selectedFloors" />
         </div>
-        <div class="elevator-panel bg-right border-right color-right">
+        <div class="elevator-panel bg-right border-right color-right fill-right">
           <ElevatorPanel  :designatedDirection="elevatorStates[2].designatedDirection"
             :current-floor="Math.round(elevatorStates[2].currentFloor)" :floor-numbers="floorNumbers"
             @on-choose-floor="(floor: number) => onChooseFloor(floor, elevator2)" @on-open-door="onOpenDoor(elevator2)"

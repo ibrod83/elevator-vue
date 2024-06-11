@@ -220,7 +220,7 @@ const getElevatorDoorStyle = (elevatorId: number) => {
 
 </script>
 <template>
-  <div class="container">
+  <!-- <div class="container"> -->
 
     <main class="main">
 
@@ -326,5 +326,5 @@ const getElevatorDoorStyle = (elevatorId: number) => {
       </div> -->
     </main>
 
-  </div>
+  <!-- </div> -->
 </template>
